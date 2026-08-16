@@ -1,0 +1,116 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Placeholder from '../../components/Placeholder.astro';
+
+const news = (await getCollection('news')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<BaseLayout
+  title="News"
+  description="Updates from APSEDEC — programme news, milestones and announcements."
+>
+  <PageHeader
+    title="News and updates"
+    eyebrow="§ News"
+    lede="Programme milestones, announcements and field updates."
+  />
+
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 01</span>
+        <span>{news.length ? 'Latest' : 'Empty'}</span>
+      </div>
+
+      <div>
+        {
+          news.length > 0 ? (
+            <div class="ledger news__list">
+              {news.map((item) => (
+                <article class="ledger__row news__row">
+                  <time class="mono news__date" datetime={item.data.date.toISOString()}>
+                    {fmt(item.data.date)}
+                  </time>
+                  <div>
+                    <h2 class="news__title">
+                      <a href={`/news/${item.id}/`}>{item.data.title}</a>
+                    </h2>
+                    <p class="news__summary">{item.data.summary}</p>
+                  </div>
+                  {item.data.tags && (
+                    <span class="mono news__tags">{item.data.tags.join(' · ')}</span>
+                  )}
+                </article>
+              ))}
+            </div>
+          ) : (
+            <>
+              <h2 class="news__heading">No updates published yet</h2>
+              <p class="news__lede">
+                This page fills itself from the news collection. Adding an item
+                is one Markdown file — title, date, summary, then the story.
+                The recipe is in the README.
+              </p>
+              <Placeholder
+                label="FIRST NEWS ITEMS"
+                note="Good candidates from the 2026 profile: the NOSP joint venture with SEPSPEL starting May 2026, the HMHL Agrifund launch, and completion of IWMDP LOT 3 in March 2026. Each needs a date and a short write-up before it can be published."
+              />
+            </>
+          )
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .news__heading {
+    font-size: var(--step-2);
+  }
+
+  .news__lede {
+    color: var(--text-muted);
+    margin-top: var(--space-2xs);
+    margin-bottom: var(--space-l);
+  }
+
+  .news__row {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-2xs);
+  }
+
+  @media (min-width: 48rem) {
+    .news__row {
+      grid-template-columns: 10rem minmax(0, 1fr) minmax(0, 9rem);
+      column-gap: var(--space-l);
+      align-items: baseline;
+    }
+  }
+
+  .news__date {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .news__title {
+    font-size: var(--step-1);
+    margin-bottom: var(--space-3xs);
+  }
+
+  .news__summary {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .news__tags {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+</style>

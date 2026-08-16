@@ -1,0 +1,308 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Placeholder from '../../components/Placeholder.astro';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const d = project.data;
+
+const fmtMonth = (s: string) => {
+  const [y, m] = s.split('-');
+  if (!m) return y;
+  const month = new Date(Number(y), Number(m) - 1).toLocaleString('en-GB', { month: 'long' });
+  return `${month} ${y}`;
+};
+const period = d.period.end
+  ? `${fmtMonth(d.period.start)} – ${fmtMonth(d.period.end)}`
+  : `From ${fmtMonth(d.period.start)}`;
+
+/* Related projects: anything sharing a district. */
+const all = await getCollection('projects');
+const related = all
+  .filter(
+    (p) => p.id !== project.id && p.data.districts.some((x) => d.districts.includes(x))
+  )
+  .slice(0, 4);
+---
+
+<BaseLayout title={d.title} description={d.summary}>
+  {/* --- Metadata block: the stamped record ------------------------------ */}
+  <header class="rec on-brand">
+    <div class="container spread">
+      <div class="spread__margin rec__margin">
+        <span>§ Project</span>
+        {d.refCode && <span>{d.refCode}</span>}
+      </div>
+      <div>
+        <p class:list={['mono', 'rec__status', `rec__status--${d.status}`]}>{d.status}</p>
+        <h1 class="rec__title">{d.title}</h1>
+        <p class="rec__summary">{d.summary}</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 01</span>
+        <span>Record</span>
+      </div>
+
+      <div>
+        <dl class="ledger rec__meta">
+          <div class="ledger__row rec__row">
+            <dt class="mono rec__key">Period</dt>
+            <dd class="rec__value">{period}</dd>
+          </div>
+          <div class="ledger__row rec__row">
+            <dt class="mono rec__key">Donor</dt>
+            <dd class="rec__value">{d.donor.join(' · ')}</dd>
+          </div>
+          {
+            d.partners && (
+              <div class="ledger__row rec__row">
+                <dt class="mono rec__key">Partners</dt>
+                <dd class="rec__value">{d.partners.join(' · ')}</dd>
+              </div>
+            )
+          }
+          {
+            d.regions && (
+              <div class="ledger__row rec__row">
+                <dt class="mono rec__key">Sub-region</dt>
+                <dd class="rec__value">{d.regions.join(' · ')}</dd>
+              </div>
+            )
+          }
+          <div class="ledger__row rec__row">
+            <dt class="mono rec__key">Districts</dt>
+            <dd class="rec__value">
+              {
+                d.districts.length ? (
+                  <ul class="rec__districts">
+                    {d.districts.map((district) => (
+                      <li class="mono rec__district">{district}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <Placeholder label="DISTRICT LIST" inline />
+                )
+              }
+            </dd>
+          </div>
+          <div class="ledger__row rec__row">
+            <dt class="mono rec__key">Sector</dt>
+            <dd class="rec__value">{d.sector.join(' · ')}</dd>
+          </div>
+          {
+            d.reach && (
+              <div class="ledger__row rec__row">
+                <dt class="mono rec__key">Scale</dt>
+                <dd class="rec__value rec__reach num">{d.reach}</dd>
+              </div>
+            )
+          }
+        </dl>
+
+        <div class="prose rec__body">
+          <Content />
+        </div>
+
+        <p class="rec__source mono">
+          Source: APSEDEC Company Profile 2026.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {
+    related.length > 0 && (
+      <section class="section section--sunk">
+        <div class="container spread">
+          <div class="spread__margin">
+            <span>§ 02</span>
+            <span>Nearby</span>
+          </div>
+          <div>
+            <h2 class="rec__related-title">Other work in these districts</h2>
+            <div class="ledger">
+              {related.map((p) => (
+                <article class="ledger__row rec__related">
+                  <a href={`/projects/${p.id}/`} class="rec__related-link">
+                    {p.data.title}
+                  </a>
+                  <span class="mono rec__related-donor">{p.data.donor.join(' · ')}</span>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section--tight">
+    <div class="container">
+      <p class="rec__back mono"><a href="/projects/">← All projects</a></p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .rec {
+    background: var(--green-900);
+    border-bottom: var(--hairline);
+    padding-block: var(--space-xl) var(--space-2xl);
+  }
+
+  .rec__margin {
+    color: var(--text-on-brand-muted);
+  }
+
+  @media (min-width: 62rem) {
+    .rec__margin {
+      border-right-color: var(--rule-on-green);
+    }
+  }
+
+  .rec__status {
+    font-size: var(--step--2);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--gold);
+    margin-bottom: var(--space-2xs);
+  }
+
+  .rec__status--completed {
+    color: var(--text-on-brand-muted);
+  }
+
+  .rec__title {
+    font-size: var(--step-3);
+    max-width: 24ch;
+  }
+
+  .rec__summary {
+    margin-top: var(--space-m);
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+    color: var(--green-200);
+    max-width: 54ch;
+  }
+
+  /* --- Metadata ledger ---------------------------------------------------- */
+  .rec__meta {
+    margin-bottom: var(--space-xl);
+  }
+
+  .rec__row {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 40rem) {
+    .rec__row {
+      grid-template-columns: 9rem minmax(0, 1fr);
+      column-gap: var(--space-l);
+      align-items: baseline;
+    }
+  }
+
+  .rec__key {
+    font-size: var(--step--2);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--text-muted);
+  }
+
+  .rec__value {
+    margin: 0;
+    max-width: 60ch;
+  }
+
+  .rec__reach {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--gold-deep);
+  }
+
+  .rec__districts {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs);
+  }
+
+  .rec__district {
+    border: var(--hairline);
+    padding: 0.15em 0.5em;
+    font-size: var(--step--2);
+    color: var(--navy);
+  }
+
+  .rec__body {
+    max-width: var(--measure);
+  }
+
+  .rec__source {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-2xs);
+    border-top: var(--hairline-faint);
+    font-size: var(--step--2);
+    color: var(--text-muted);
+    max-width: none;
+  }
+
+  /* --- Related ------------------------------------------------------------ */
+  .rec__related-title {
+    font-size: var(--step-1);
+    margin-bottom: var(--space-m);
+  }
+
+  .rec__related {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-3xs);
+  }
+
+  @media (min-width: 48rem) {
+    .rec__related {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 14rem);
+      align-items: baseline;
+    }
+  }
+
+  .rec__related-link {
+    font-size: var(--step-0);
+  }
+
+  .rec__related-donor {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .rec__related-donor {
+      text-align: right;
+    }
+  }
+
+  .rec__back {
+    font-size: var(--step--1);
+    padding-block: var(--space-l);
+  }
+
+  .section--sunk {
+    background: var(--paper-sunk);
+    border-block: var(--hairline-faint);
+  }
+</style>

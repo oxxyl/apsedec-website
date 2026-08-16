@@ -1,0 +1,173 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+
+/**
+ * Partner logo bar (BRIEF.md §5) — greyscale at rest, colour on hover.
+ *
+ * This bar is a LOGO WALL. Text and initials are a temporary stand-in only:
+ * every slot below is sized and positioned for an actual logo file, and the
+ * placeholder is deliberately drawn as an empty frame (navy dashed, §13) so it
+ * never reads as a designed wordmark treatment.
+ *
+ * To fill a slot: add the logo file and reference it from the partner's
+ * Markdown file — nothing here needs changing.
+ */
+const partners = (await getCollection('partners'))
+  .filter((p) => p.data.type === 'donor' || p.data.type === 'government')
+  .sort((a, b) => a.data.name.localeCompare(b.data.name));
+
+const awaiting = partners.filter((p) => !p.data.logo).length;
+
+/**
+ * Optical sizing. Capping every logo at one height makes portrait marks read
+ * far smaller than wide ones (a 310x400 mark ends up 37px wide next to a
+ * 134px wordmark). Bucket by aspect ratio and give each shape its own cap so
+ * the marks carry roughly equal visual weight.
+ */
+const shapeOf = (logo: { width: number; height: number }) => {
+  const aspect = logo.width / logo.height;
+  if (aspect >= 2) return 'wide';
+  if (aspect >= 0.85) return 'square';
+  return 'tall';
+};
+---
+
+<ul class="partners" aria-label="Donors and government partners">
+  {
+    partners.map((partner) => (
+      <li
+        class:list={[
+          'partners__slot',
+          partner.data.logo ? 'partners__slot--filled' : 'partners__slot--empty',
+        ]}
+        data-shape={partner.data.logo ? shapeOf(partner.data.logo) : undefined}
+      >
+        {
+          partner.data.logo ? (
+            partner.data.logo.format === 'svg' ? (
+              // SVG passes through untouched — nothing to optimise.
+              <img
+                src={partner.data.logo.src}
+                width={partner.data.logo.width}
+                height={partner.data.logo.height}
+                alt={partner.data.name}
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              // One 260px-wide WebP each. The slot renders a logo about 130px
+              // wide, so this covers 2x displays with no srcset to negotiate.
+              <Image
+                src={partner.data.logo}
+                alt={partner.data.name}
+                width={260}
+                format="webp"
+                quality={80}
+                loading="lazy"
+                decoding="async"
+              />
+            )
+          ) : (
+            <span class="partners__awaiting">{partner.data.name}</span>
+          )
+        }
+      </li>
+    ))
+  }
+</ul>
+
+{
+  awaiting > 0 && (
+    <p class="partners__status mono" data-pending>
+      ▶ [{awaiting} PARTNER LOGO FILES — awaiting client] Each frame above is a
+      logo slot at final size. Names are shown only so you can tell which file
+      goes where.
+    </p>
+  )
+}
+
+<style>
+  .partners {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: var(--space-2xs);
+  }
+
+  /* Every slot is the same box, logo or not, so the wall does not reflow when
+     the real files land. */
+  .partners__slot {
+    display: grid;
+    place-items: center;
+    min-height: 5.5rem;
+    padding: var(--space-2xs) var(--space-xs);
+    border: var(--hairline);
+  }
+
+  /*
+    A white field, not the page green. Eight of the supplied logos are opaque
+    JPEGs carrying their own white background — on a green ground they would
+    read as white rectangles of slightly different sizes. White makes the
+    opaque and the transparent files sit identically.
+  */
+  .partners__slot--filled {
+    background: #ffffff;
+    /* Greyscale at rest, colour on hover — on the frame, so it works for any
+       logo file without per-logo styling. */
+    filter: grayscale(1);
+    opacity: 0.9;
+    transition: filter var(--dur-fast) var(--ease),
+      opacity var(--dur-fast) var(--ease);
+  }
+
+  .partners__slot--filled:hover,
+  .partners__slot--filled:focus-within {
+    filter: grayscale(0);
+    opacity: 1;
+  }
+
+  .partners__slot :global(img) {
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  /* Per-shape height caps — see shapeOf() above. */
+  .partners__slot[data-shape='wide'] :global(img) {
+    max-height: 2.4rem;
+  }
+
+  .partners__slot[data-shape='square'] :global(img) {
+    max-height: 3.1rem;
+  }
+
+  .partners__slot[data-shape='tall'] :global(img) {
+    max-height: 4rem;
+  }
+
+  /* Empty slot: unmistakably a missing asset, not a type treatment. */
+  .partners__slot--empty {
+    border-style: dashed;
+    background: var(--paper-sunk);
+  }
+
+  .partners__awaiting {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    line-height: 1.3;
+    text-align: center;
+    color: var(--text-muted);
+    text-wrap: balance;
+  }
+
+  .partners__status {
+    margin-top: var(--space-s);
+    font-size: var(--step--2);
+    color: var(--navy);
+    max-width: none;
+  }
+</style>

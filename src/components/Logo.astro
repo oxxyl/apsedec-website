@@ -1,0 +1,118 @@
+---
+import { Image } from 'astro:assets';
+import logo from '../assets/brand/apsedec-logo.png';
+
+/**
+ * APSEDEC logo lockup: the emblem beside the organisation's name.
+ *
+ * The supplied logo is a detailed seal — two banners of curved text, a Uganda
+ * silhouette, and a three-scene roundel. At header size its banner text is
+ * unreadable, so the emblem carries recognition and the typeset name carries
+ * the reading. That is the standard treatment for a seal of this kind.
+ *
+ * variant="white" is for green and navy surfaces (BRIEF.md §4.2). The colour
+ * emblem is NOT shown there: §4.2 bars the colour logo on green, and no
+ * all-white variant of this artwork exists yet — the roundel scenes cannot be
+ * flattened to a single colour without losing them. Until one is supplied,
+ * green surfaces get the type-only lockup.
+ * ▶ Awaiting: all-white logo variant (PENDING_INPUTS.md).
+ */
+interface Props {
+  variant?: 'primary' | 'white';
+  size?: 'sm' | 'md';
+}
+
+const { variant = 'primary', size = 'sm' } = Astro.props;
+const showEmblem = variant === 'primary';
+---
+
+<span class:list={['logo', `logo--${variant}`, `logo--${size}`]}>
+  {
+    showEmblem && (
+      <Image
+        class="logo__emblem"
+        src={logo}
+        alt=""
+        width={size === 'md' ? 128 : 96}
+        format="webp"
+        quality={85}
+        loading="eager"
+      />
+    )
+  }
+  <span class="logo__type">
+    <span class="logo__mark">APSEDEC</span>
+    <span class="logo__rule" aria-hidden="true"></span>
+    <span class="logo__sub">Acholi Private Sector Development Company Ltd</span>
+  </span>
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    text-decoration: none;
+    line-height: 1;
+  }
+
+  /* .logo__emblem is sized in base.css — it is rendered by <Image>, so a
+     scoped rule here never reaches it. */
+
+  .logo__type {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.15em;
+  }
+
+  .logo__mark {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    font-size: var(--step-1);
+  }
+
+  .logo--md .logo__mark {
+    font-size: var(--step-2);
+  }
+
+  /* The rule is navy — even inside the mark. */
+  .logo__rule {
+    display: block;
+    height: 1px;
+    background: var(--navy);
+  }
+
+  .logo__sub {
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .logo--md .logo__sub {
+    font-size: 0.58rem;
+  }
+
+  .logo--primary .logo__mark {
+    color: var(--green-700);
+  }
+
+  /* All-white variant: for green and navy surfaces only. */
+  .logo--white .logo__mark,
+  .logo--white .logo__sub {
+    color: #ffffff;
+  }
+
+  .logo--white .logo__rule {
+    background: rgb(255 255 255 / 55%);
+  }
+
+  @media (max-width: 30rem) {
+    .logo__sub {
+      display: none;
+    }
+  }
+</style>

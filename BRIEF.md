@@ -7,7 +7,7 @@
 
 ## 1. Mission & your role
 
-You are the sole developer building the official website for **APSEDEC (Acholi Private Sector Development Company Limited)** — a Northern Uganda capacity-building and business development organisation with 25+ years of experience in agricultural value chains, VSLA formation, microfinance, and women's economic empowerment.
+You are the sole developer building the official website for **APSEDEC (Acholi Private Sector Development Company Limited)** — a **national** capacity-building and business development organisation, headquartered in Kitgum and rooted in Northern Uganda, with 25+ years of experience in agricultural value chains, VSLA formation, microfinance, and women's economic empowerment. *(Corrected 15 Aug 2026: the 2026 company profile describes APSEDEC as national, with active projects in Northern, Eastern, Central and West Nile regions — see §2.)*
 
 The site must be **credible to institutional donors** (World Bank, IFAD, CARE, USAID, UNDP have all funded APSEDEC), **fast on Northern Ugandan mobile connections**, and **maintainable by one technical person** (the client, GitHub user `oxxyl`) whose workflow is: drop a Markdown file in a folder, push to `main`, done. No CMS, no database, no admin panel, no paid services beyond the domain and payment processing.
 
@@ -17,26 +17,62 @@ Act as a design lead at a small studio whose reputation is that no two clients' 
 
 ## 2. Organisation facts (verified — use verbatim)
 
+> **Source of truth: `APSEDEC PROFILE 2026.pdf`** (the authoritative 2026 company
+> profile, in the repo root). This section was rewritten on 15 Aug 2026 to match
+> it. Where anything conflicts with the profile, **the profile wins.** Figures
+> not in the profile must use the placeholder convention (§13).
+
 | Item | Value |
 |---|---|
 | Full name | Acholi Private Sector Development Company Limited (APSEDEC) |
-| Legal form | Company limited by guarantee, Uganda |
-| Tagline | "Promoting business excellence that sustainably meets the needs of private sector growth and development" |
-| HQ | Awich Road (opposite Kitgum District Post Office), P.O. Box 374, Kitgum, Uganda |
-| Field offices | Gulu, Pader |
-| Phone | 0774505904 / 0782525228 |
-| Primary email | **info@apsedec.org** ▶ [client to confirm — note primary domain is apsedec.com; switch to info@apsedec.com if preferred] |
-| Legacy emails | apsedec2006@yahoo.co.uk, apsedec2006@gmail.com (secondary, contact page only) |
+| Former name | Kitgum Private Sector Promotion Centre |
+| Legal form | Company limited by guarantee, Uganda — **Registration No. 62106** |
+| Established | **June 1999**, as a project under the Government of Uganda / UNDP Country Cooperation Framework (CCF I) |
+| Registered | **June 2004** by the Registrar of Companies |
+| Scope | **National** capacity-building and business-development organisation (not Northern-Uganda-only) |
+| Tagline | "Promoting business excellence that sustainably meets the needs of private-sector growth and development in Uganda" |
+| Vision | "To be a centre of business excellence that sustainably meets the needs of private sector growth and development" |
+| Mission | "To offer client-oriented capacity-building services in enterprise and entrepreneurship growth and development, business development service & management, microfinance support services, research & advocacy, and fostering strategic alliances with development partners for increased incomes and sustainable livelihoods" |
+| Core values | Mutual Respect · Accountability · Team Work · Professionalism · God Fearing |
+| HQ | Awich Road (opposite Kitgum District Post Office), P.O. Box 374, Kitgum, Uganda — 0774505904 / 0782525228 |
+| Field offices | **Gulu** (Plot 4, Onono Road, Senior Quarters, Gulu City — 0772330292), **Buvuma** (NOPP Hub, Buvuma Town Council — 0778046923), **Kasese** (Plot 57 Kijongo Road, Muyenga, Kasese Municipality — 0772076627), **Mayuge** (0788234895 / 0701916527), **Kampala** (0774505904 / 0782525228). Profile also names **Pader, Kaabong, Kalangala** among field offices. |
+| Published email | **apsedec2006@yahoo.co.uk** (the address printed on the 2026 profile) |
+| Primary email | **info@apsedec.org** ▶ [client to confirm — not yet used in the profile; primary domain is apsedec.com] |
+| Legacy email | apsedec2006@gmail.com (secondary, contact page only) |
 | Domain | **apsedec.com** (primary; apsedec.org redirects to it) |
-| Donors & partners | IFAD, World Bank, USAID, CARE International, UNDP, NWSC, MAAIF, CECI, Ministry of Finance |
+| Governance | Board of Directors democratically elected from a membership of **26** private-, public- and civil-society organisations; Board Chair **Mr. Ogwang Daniel Abwa**; Chief Executive Officer **Mr. Nelson Tasenga** |
+| Donors & partners | IFAD, CARE International in Uganda, World Bank, USAID, UNDP, UNCDF, UNHCR, NWSC, MAAIF, MoFPED, GOAL, RTI, TechnoServe, World Education/Bantwana, FSDU, FSD Uganda, African Development Bank, Bloomberg Philanthropies, Gates Foundation, IIRR, SEPSPEL, MNPSDC |
 
-**Verified track record (usable as impact copy):**
-- PROFIRA 1 & 2 (IFAD/MoFPED): formed and strengthened **5,000+ community savings and credit groups (CSCGs)** across Acholi and Lango, reaching **138,000+ direct** and **828,000+ indirect beneficiaries**; a further 500 CSCGs supported through COVID-19 recovery stimulus grants.
-- IWMDP LOT 3 (World Bank/NWSC): alternative livelihoods for 300 households in the Oyitino Catchment, Gulu City — 10 VSLAs, poultry and piggery enterprises.
-- NOPP-FID Component 2 (IFAD/MAAIF): oil palm grower organisation and SACCO formation in Buvuma, Mayuge, Kalangala, Namayingo.
-- HMHL — Her Money, Her Life (CARE): women's economic empowerment across Acholi and Lango sub-regions, consortium with JESE and NOGAMU.
-- AWCEM (CARE): 331 women's collective enterprises (6,620 women) across 8 Northern Uganda districts in groundnuts, hibiscus, seed oils, and shea butter value chains.
-- Metu SACCO capacity building (Mastercard Foundation-linked).
+**Our Reach (profile headline figures — use for the home impact counters):**
+**25+** years of operations · **70,000+** farmers and women supported ·
+**8,000+** VSLAs formed/strengthened · **40+** districts reached nationwide.
+
+> Note: the profile's "Where We Are" section separately states APSEDEC has
+> implemented in **nearly 50 districts**, with active projects in **15 districts**
+> across Northern, Eastern, Central and West Nile regions. Use "40+" for the
+> counter (it is the figure APSEDEC itself headlines) and flag the discrepancy
+> to the client.
+
+### Current & recent projects (2021–2026)
+
+- **HMHL — Her Money, Her Life Agrifund** (CARE International; with Bloomberg Philanthropies and the Women's Economic Development Network) — 8 months, May–Dec 2026, Acholi & Lango. 150 VSLAs strengthened, 150 collective marketing committees, 25 PMGs/aggregation hubs formalised, 50 women leaders mentored; contract ceiling UGX 444M (wider programme targets 30,000 women). Value chains: oilseeds, maize, coffee, hibiscus.
+- **AWCEM — Advancing Women Collective Enterprises in Markets** (CARE International) — 19 months, Feb 2026–Aug 2027, 8 districts, Acholi. 331 women's groups (6,620 women entrepreneurs) and 50 women business mentors (wider programme targets 12,000 women across 600 VSLAs). Builds on DREAMS and DDT4C. Value chains: groundnuts, hibiscus, seed oils, shea butter.
+- **NOSP — National Oilseeds Project** (IFAD/MAAIF) — 3 years from May 2026, Busoga. **Consortium: SEPSPEL–APSEDEC Joint Venture.** 630 farmer groups and 18,175 farming households targeted across Namayingo, Bugiri, Jinja, Iganga, Mayuge, Bugweri, Buyende, Namutumba, Kaliro, Luuka, Kamuli.
+- **NOPP-FID — Strengthening Oil Palm Farmers' Organisations** (IFAD/MAAIF) — 5 years from Feb 2022, Buvuma & Mayuge hubs (covering Buvuma, Mayuge, Namayingo, Bugiri). Four cooperatives formed and registered; 2,750 oil-palm grower members mobilised; SACCO development underway.
+- **NOPP Component 2 — Livelihood Diversification & Resilience** (IFAD/MAAIF) — Oct 2023–Aug 2025, Kalangala & Buvuma. 1,150 beneficiaries (50% women, 50% youth) trained; 56 VSLAs formed.
+- **IWMDP LOT 3** (World Bank/GoU via NWSC) — Nov 2024–Mar 2026, Oitino Catchment, Gulu City. 300 direct beneficiaries (57% female, 30% youth, 12% PWDs) from 10 VSLAs; 100 enterprise units built (50 poultry houses, 50 pig sties); 9,000 birds and 65 pigs distributed. All deliverables completed.
+- **Metu SACCO capacity building** (**FSD Uganda** — Affirmative Action MSE Recovery Fund) — from Oct 2024, Moyo District. Mount Otce Metu SACCO serves 7,908 members and 1,516 active loan clients on a loan book of UGX 2.3 billion. STAR approach.
+- **AVCP — Agriculture Value Chain Development Programme** (GoU/MAAIF/African Development Bank) — Nov 2021–Oct 2023, 15 districts, Central & Western Uganda. **Consortium: APSEDEC with IIRR.** 14,591 farmer groups (323,868 members) reached; 1,462 Village Agents established; 91% of cumulative deliverables achieved.
+- **DREAMS** (CARE International / Gates Foundation) — Nov 2024–Sep 2025, Acholi (Gulu City, Gulu, Kitgum, Nwoya, Omoro). 3,537 women entrepreneurs targeted; 3,197 (90%) mentored and trained.
+
+### Earlier projects (2016–2021)
+
+- **PROFIRA — Project for Financial Inclusion in Rural Areas** (MoFPED/IFAD) — 2016–2021, Phases 2.1 & 2.2, Acholi & Lango. **Consortium: MNPSDC and IIRR.** **3,486 CSCGs with 59,726 members** trained across Phases 1 and 2, plus **211 mature CSCGs (5,680 members)** strengthened.
+- **VODP2 — Vegetable Oil Development Program Phase 2** (MAAIF/GoU/IFAD) — Oct 2016–Dec 2019, Agago & Nwoya. 200 farmer groups with 6,071 members; 185 groups benefited from demonstrations across 25 acres.
+- **POA — Producer Organization Activity** (TechnoServe / USAID Feed the Future) — 2017–Mar 2020, Gulu, Lira, Masindi. 4 Producer Organisations strengthened; 2 tractors secured via NAADS and UGX 180M from SNV.
+- **GAPP — Governance, Accountability, Participation & Performance** (RTI / USAID / UKAid) — Mar 2017–Jun 2019, Gulu, Kitgum, Pader. 15 Private Sector Associations representing 450 members; all 16 milestones completed.
+- **AYEDI — Adolescent Youth Education & Development Initiative** (World Education / Bantwana) — Aug 2016–Apr 2018, Gulu & Lira. 900+ youth and household members supported; 255 trained in alternative enterprises; 780 households established backyard gardens.
+- **CRRP — COVID-19 Resilience & Recovery Program** (GOAL Uganda) — Aug 2020–Aug 2021, Agago, Kaabong, Karenga. 1,000 youth-owned MSEs (70% women-owned) and 400 VSLAs strengthened.
 
 Any figure, name, or date NOT listed above must use the placeholder convention (§13). **Never invent statistics, board members, dates, or quotes.**
 

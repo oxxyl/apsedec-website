@@ -1,0 +1,92 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+/* No news entries exist yet, so this route builds zero pages. It is here so
+   that adding one Markdown file is all that is needed to publish. */
+export async function getStaticPaths() {
+  const news = await getCollection('news');
+  return news.map((item) => ({
+    params: { slug: item.id },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props;
+const { Content } = await render(item);
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<BaseLayout title={item.data.title} description={item.data.summary}>
+  <header class="post on-brand">
+    <div class="container spread">
+      <div class="spread__margin post__margin">
+        <span>§ News</span>
+        <time datetime={item.data.date.toISOString()}>{fmt(item.data.date)}</time>
+      </div>
+      <div>
+        <h1 class="post__title">{item.data.title}</h1>
+        <p class="post__summary">{item.data.summary}</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        {item.data.tags && <span>{item.data.tags.join(' · ')}</span>}
+      </div>
+      <div class="prose post__body">
+        <Content />
+      </div>
+    </div>
+  </section>
+
+  <section class="section--tight">
+    <div class="container">
+      <p class="post__back mono"><a href="/news/">← All news</a></p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .post {
+    background: var(--green-900);
+    border-bottom: var(--hairline);
+    padding-block: var(--space-xl) var(--space-2xl);
+  }
+
+  .post__margin {
+    color: var(--text-on-brand-muted);
+  }
+
+  @media (min-width: 62rem) {
+    .post__margin {
+      border-right-color: var(--rule-on-green);
+    }
+  }
+
+  .post__title {
+    font-size: var(--step-3);
+    max-width: 24ch;
+  }
+
+  .post__summary {
+    margin-top: var(--space-m);
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+    color: var(--green-200);
+    max-width: 54ch;
+  }
+
+  .post__body {
+    max-width: var(--measure);
+  }
+
+  .post__back {
+    font-size: var(--step--1);
+    padding-block: var(--space-l);
+  }
+</style>

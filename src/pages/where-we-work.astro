@@ -1,0 +1,267 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import DistrictMap from '../components/DistrictMap.astro';
+import { COVERAGE_ONLY, OFFICES } from '../config';
+
+/* The full-page map (BRIEF.md §7). This is where the district-by-district
+   reveal lives — the home page's single motion moment is the impact counters,
+   so the map runs quiet there and animates here. */
+
+const projects = await getCollection('projects');
+
+const districts = [
+  ...new Set([...projects.flatMap((p) => p.data.districts), ...COVERAGE_ONLY]),
+];
+
+/**
+ * District profiles, listed alphabetically.
+ *
+ * NOT grouped by sub-region: a project records the sub-regions it spans but
+ * not which of its districts sit in which, so grouping would have put Lango
+ * districts under Acholi and vice versa. The profile states no district-to-
+ * sub-region mapping, and inventing one is not an option. Sub-region names
+ * appear on each project record instead.
+ */
+const officeByTown = OFFICES.map((o) => o.town);
+const projectCount = (district: string) =>
+  projects.filter((p) => p.data.districts.includes(district)).length;
+
+const profile = [...districts]
+  .sort((a, b) => a.localeCompare(b))
+  .map((district) => ({
+    name: district,
+    projects: projectCount(district),
+    office: officeByTown.find((t) => t === district || t.startsWith(`${district} `)),
+  }));
+
+const regionNames = [...new Set(projects.flatMap((p) => p.data.regions ?? []))].sort();
+---
+
+<BaseLayout
+  title="Where We Work"
+  description="APSEDEC has implemented programmes in nearly 50 districts across Northern, Eastern, Central and Western Uganda. Explore the district map."
+>
+  <PageHeader
+    title="Where APSEDEC works"
+    eyebrow="§ Where we work"
+    lede="Programmes across the Acholi, Lango, Busoga, Karamoja, Central and Western regions, from a head office in Kitgum and ten further offices."
+  />
+
+  {/* --- The map ---------------------------------------------------------- */}
+  <section class="section">
+    <div class="container">
+      <div class="wow__stats ledger">
+        <div class="ledger__row wow__stat">
+          <span class="wow__figure num">{districts.length}</span>
+          <span class="wow__label">districts on record</span>
+        </div>
+        <div class="ledger__row wow__stat">
+          <span class="wow__figure num">{OFFICES.length}</span>
+          <span class="wow__label">offices</span>
+        </div>
+        <div class="ledger__row wow__stat">
+          <span class="wow__figure num">{projects.length}</span>
+          <span class="wow__label">projects delivered</span>
+        </div>
+      </div>
+
+      <figure class="wow__mapfig">
+        <figcaption class="wow__maphead">
+          <span class="mono">Fig. 1</span>
+          <span class="mono">Districts of operation and office locations</span>
+        </figcaption>
+        <div class="wow__mapbody">
+          <DistrictMap variant="full" reveal />
+        </div>
+        <figcaption class="wow__mapfoot mono">
+          Boundaries: OCHA Uganda COD-AB, admin level 2 (135 districts, 2020),
+          licensed CC BY-IGO. Gulu City and Lira City are shown on the Gulu and
+          Lira districts, which the 2020 boundaries predate.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  {/* --- District profiles by sub-region ---------------------------------- */}
+  <section class="section section--sunk">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 01</span>
+        <span>Sub-regions</span>
+      </div>
+
+      <div>
+        <h2>Every district on record</h2>
+        <p class="wow__lede">
+          All {profile.length} districts, alphabetically. Districts carrying an
+          APSEDEC office are stamped. Sub-regions named across the project
+          record: {regionNames.join(', ')}.
+        </p>
+
+        <div class="ledger wow__profiles">
+          {
+            profile.map((district) => (
+              <div class="ledger__row wow__district-row">
+                <span class="wow__district-name">
+                  {district.name}
+                  {district.office && (
+                    <span class="wow__office-badge">
+                      {district.office === district.name ? 'office' : district.office}
+                    </span>
+                  )}
+                </span>
+                <span class="mono wow__district-count">
+                  {district.projects}
+                  {district.projects === 1 ? ' project' : ' projects'}
+                </span>
+              </div>
+            ))
+          }
+        </div>
+
+        <p class="wow__footnote">
+          A project records the sub-regions it spans but not which of its
+          districts sit in which, so districts are not grouped by sub-region
+          here — that mapping is not in the 2026 profile.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .wow__stats {
+    display: grid;
+    margin-bottom: var(--space-xl);
+  }
+
+  @media (min-width: 40rem) {
+    .wow__stats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-top: var(--hairline);
+    }
+
+    .wow__stats .wow__stat {
+      border-bottom: var(--hairline);
+    }
+  }
+
+  .wow__stat {
+    grid-template-columns: 5rem minmax(0, 1fr);
+    column-gap: var(--space-s);
+    align-items: baseline;
+  }
+
+  .wow__figure {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--step-2);
+    line-height: 1;
+    color: var(--gold-deep);
+  }
+
+  .wow__label {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  /* --- Map figure ---------------------------------------------------------- */
+  .wow__mapfig {
+    margin: 0;
+    border: var(--hairline);
+    background: var(--paper);
+  }
+
+  .wow__maphead {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding: var(--space-2xs) var(--space-s);
+    border-bottom: var(--hairline);
+    font-size: var(--step--2);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--navy);
+  }
+
+  .wow__mapbody {
+    padding: var(--space-m) var(--space-s);
+  }
+
+  @media (min-width: 48rem) {
+    .wow__mapbody {
+      padding: var(--space-l);
+    }
+  }
+
+  .wow__mapfoot {
+    padding: var(--space-2xs) var(--space-s);
+    border-top: var(--hairline-faint);
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  /* --- Region profiles ------------------------------------------------------ */
+  .wow__lede {
+    color: var(--text-muted);
+    margin-top: var(--space-2xs);
+    margin-bottom: var(--space-l);
+  }
+
+  .wow__profiles {
+    margin-bottom: var(--space-m);
+  }
+
+  @media (min-width: 52rem) {
+    .wow__profiles {
+      column-count: 2;
+      column-gap: var(--space-xl);
+    }
+
+    .wow__profiles .wow__district-row {
+      break-inside: avoid;
+    }
+  }
+
+  .wow__footnote {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+    max-width: 60ch;
+  }
+
+  .wow__district-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+  }
+
+  .wow__district-name {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--navy);
+  }
+
+  .wow__office-badge {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--navy);
+    border: 1px solid var(--navy);
+    padding: 0.1em 0.4em;
+    margin-left: 0.6em;
+  }
+
+  .wow__district-count {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .section--sunk {
+    background: var(--paper-sunk);
+    border-block: var(--hairline-faint);
+  }
+</style>

@@ -1,0 +1,273 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+
+/* The four service lines are quoted from the profile's "What We Do"; the
+   seven practice areas are the disciplines listed on its cover. */
+
+const services = [
+  {
+    ref: 'BDS',
+    title: 'Business development services',
+    body: 'For individual, group and farmer-association enterprises in the public and private sectors.',
+  },
+  {
+    ref: 'MF',
+    title: 'Microfinance support and financial inclusion',
+    body: 'Formation, training and digitalisation of VSLAs, SACCOs and MFIs in governance, operations, products and systems.',
+  },
+  {
+    ref: 'AGRI',
+    title: 'Agribusiness and value-chain development',
+    body: 'Farmer institutional development, cooperative formation and market linkages.',
+  },
+  {
+    ref: 'GEN',
+    title: 'Gender-transformative programming',
+    body: 'Research, monitoring and evaluation, and policy advocacy.',
+  },
+];
+
+const practices = [
+  'Business Development',
+  'Institutional Capacity Building',
+  'Microfinance Support',
+  'Gender Programming',
+  'Agribusiness Development',
+  'Social Research',
+  'Policy Advocacy',
+];
+
+/* Sectors actually delivered, counted from the project collection — evidence
+   for the service lines above rather than an assertion. */
+const projects = await getCollection('projects');
+const sectorCounts = new Map<string, number>();
+for (const project of projects) {
+  for (const sector of project.data.sector) {
+    sectorCounts.set(sector, (sectorCounts.get(sector) ?? 0) + 1);
+  }
+}
+const sectors = [...sectorCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+const valueChains = [
+  'Oilseeds', 'Maize', 'Coffee', 'Hibiscus', 'Groundnuts', 'Seed oils',
+  'Shea butter', 'Oil palm', 'Rice', 'Sunflower', 'Soybean', 'Beans',
+  'Poultry', 'Piggery',
+];
+---
+
+<BaseLayout
+  title="What We Do"
+  description="Business development services, microfinance and financial inclusion, agribusiness and value chains, and gender-transformative programming."
+>
+  <PageHeader
+    title="Four service lines, one method"
+    eyebrow="§ What we do"
+    lede="APSEDEC offers client-oriented capacity building: enterprise growth, business development services, microfinance support, research and advocacy, and strategic alliances with development partners."
+  />
+
+  {/* --- Service lines ---------------------------------------------------- */}
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 01</span>
+        <span>Services</span>
+      </div>
+      <div>
+        <div class="ledger wwd__services">
+          {
+            services.map((service) => (
+              <article class="ledger__row wwd__service">
+                <span class="stamp wwd__ref">{service.ref}</span>
+                <div>
+                  <h2 class="wwd__title">{service.title}</h2>
+                  <p class="wwd__body">{service.body}</p>
+                </div>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* --- Practice areas --------------------------------------------------- */}
+  <section class="section section--sunk">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 02</span>
+        <span>Disciplines</span>
+      </div>
+      <div>
+        <h2>Practice areas</h2>
+        <ul class="wwd__practices">
+          {practices.map((p) => <li class="mono wwd__practice">{p}</li>)}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* --- Evidence: sectors delivered -------------------------------------- */}
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 03</span>
+        <span>In practice</span>
+      </div>
+      <div>
+        <h2>What that has meant in delivery</h2>
+        <p class="wwd__lede">
+          Counted across the {projects.length} projects in the record — each figure
+          is the number of engagements that included that work.
+        </p>
+
+        <div class="ledger wwd__sectors">
+          {
+            sectors.map(([sector, count]) => (
+              <div class="ledger__row wwd__sector">
+                <span class="wwd__sector-name">{sector}</span>
+                <span class="wwd__sector-count num">{count}</span>
+                <span class="wwd__bar" aria-hidden="true">
+                  <span style={`width:${(count / sectors[0][1]) * 100}%`} />
+                </span>
+              </div>
+            ))
+          }
+        </div>
+
+        <h3 class="wwd__subhead">Value chains worked</h3>
+        <ul class="wwd__chains">
+          {valueChains.map((c) => <li class="mono wwd__chain">{c}</li>)}
+        </ul>
+
+        <p class="wwd__note">
+          <a href="/projects/">See every project →</a>
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .wwd__services {
+    margin-block: 0 var(--space-m);
+  }
+
+  .wwd__service {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 40rem) {
+    .wwd__service {
+      grid-template-columns: 6rem minmax(0, 1fr);
+      column-gap: var(--space-l);
+    }
+  }
+
+  .wwd__ref {
+    justify-self: start;
+  }
+
+  .wwd__title {
+    font-size: var(--step-1);
+    margin-bottom: var(--space-3xs);
+  }
+
+  .wwd__body {
+    color: var(--text-muted);
+  }
+
+  /* --- Practices ---------------------------------------------------------- */
+  .wwd__practices,
+  .wwd__chains {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-m) 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+  }
+
+  .wwd__practice,
+  .wwd__chain {
+    border: var(--hairline);
+    padding: 0.5em 0.85em;
+    font-size: var(--step--1);
+    color: var(--navy);
+    background: var(--paper-raised);
+  }
+
+  .wwd__chain {
+    font-size: var(--step--2);
+  }
+
+  /* --- Sector ledger ------------------------------------------------------ */
+  .wwd__lede {
+    color: var(--text-muted);
+    margin-top: var(--space-2xs);
+  }
+
+  .wwd__sectors {
+    margin-block: var(--space-l) var(--space-m);
+  }
+
+  .wwd__sector {
+    grid-template-columns: minmax(0, 1fr) 2.5rem;
+    align-items: baseline;
+  }
+
+  @media (min-width: 48rem) {
+    .wwd__sector {
+      grid-template-columns: minmax(0, 18rem) 2.5rem minmax(0, 1fr);
+      column-gap: var(--space-m);
+    }
+  }
+
+  .wwd__sector-count {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--gold-deep);
+    text-align: right;
+  }
+
+  /* A ruled measure, not a chart: navy baseline, green fill, no axis. */
+  .wwd__bar {
+    display: none;
+    height: 0.5rem;
+    border-bottom: 1px solid var(--rule);
+    align-self: center;
+  }
+
+  @media (min-width: 48rem) {
+    .wwd__bar {
+      display: block;
+    }
+  }
+
+  .wwd__bar > span {
+    display: block;
+    height: 100%;
+    background: var(--green-600);
+  }
+
+  .wwd__subhead {
+    font-size: var(--step-0);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-top: var(--space-xl);
+  }
+
+  .wwd__note {
+    margin-top: var(--space-l);
+    font-size: var(--step--1);
+  }
+
+  .section--sunk {
+    background: var(--paper-sunk);
+    border-block: var(--hairline-faint);
+  }
+</style>

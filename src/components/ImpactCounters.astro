@@ -1,0 +1,138 @@
+---
+/**
+ * "Our Reach" — count-up impact strip.
+ *
+ * Figures are APSEDEC's own headline numbers from APSEDEC PROFILE 2026.pdf
+ * ("Our Reach"). No project names or breakdowns here — that detail belongs on
+ * /projects/.
+ *
+ * Ledger rows, not floating cards. Final values are rendered in the HTML, so
+ * the strip is correct with JS disabled and for screen readers; the script
+ * only replays them from zero. Skipped entirely under prefers-reduced-motion.
+ */
+const counters = [
+  { value: 25, suffix: '+', label: 'Years of operations' },
+  { value: 70000, suffix: '+', label: 'Farmers and women supported' },
+  { value: 8000, suffix: '+', label: 'VSLAs formed and strengthened' },
+  { value: 40, suffix: '+', label: 'Districts reached nationwide' },
+];
+
+const fmt = new Intl.NumberFormat('en-GB');
+---
+
+<div class="counters ledger" data-counters>
+  {
+    counters.map((c, i) => (
+      <div class="ledger__row counters__row">
+        <span class="mono counters__index">{String(i + 1).padStart(2, '0')}</span>
+        <span
+          class="counters__value num"
+          data-count-to={c.value}
+          data-suffix={c.suffix}
+        >
+          {fmt.format(c.value)}{c.suffix}
+        </span>
+        <span class="counters__label">{c.label}</span>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .counters {
+    margin-block: var(--space-l) var(--space-m);
+  }
+
+  .counters__row {
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--space-s);
+    align-items: baseline;
+  }
+
+  @media (min-width: 40rem) {
+    .counters__row {
+      grid-template-columns: 2.5rem minmax(0, 9rem) minmax(0, 1fr);
+      column-gap: var(--space-m);
+    }
+  }
+
+  .counters__index {
+    color: var(--text-muted);
+    font-size: var(--step--2);
+  }
+
+  .counters__value {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--step-3);
+    line-height: 1;
+    color: var(--gold-deep); /* gold as punctuation — key numbers only */
+    /* tabular figures + fixed min-width: the row cannot reflow while counting */
+    min-width: 5ch;
+  }
+
+  .counters__label {
+    grid-column: 2 / -1;
+    line-height: 1.3;
+  }
+
+  @media (min-width: 40rem) {
+    .counters__label {
+      grid-column: auto;
+    }
+  }
+</style>
+
+<script>
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const strip = document.querySelector<HTMLElement>('[data-counters]');
+
+  if (strip && !reduced) {
+    const cells = Array.from(
+      strip.querySelectorAll<HTMLElement>('[data-count-to]')
+    );
+    const format = new Intl.NumberFormat('en-GB').format;
+
+    const run = () => {
+      const DURATION = 1400;
+      const start = performance.now();
+
+      cells.forEach((cell) => {
+        const target = Number(cell.dataset.countTo ?? 0);
+        const suffix = cell.dataset.suffix ?? '';
+        const final = format(target) + suffix;
+
+        const step = (now: number) => {
+          const t = Math.min((now - start) / DURATION, 1);
+          // ease-out cubic — fast posting, settling at the end
+          const eased = 1 - Math.pow(1 - t, 3);
+          cell.textContent = format(Math.round(target * eased)) + suffix;
+          if (t < 1) requestAnimationFrame(step);
+        };
+
+        cell.textContent = format(0) + suffix;
+        requestAnimationFrame(step);
+
+        // Backstop: rAF is throttled to zero in a background/non-compositing
+        // tab, which would strand the figure at 0. Never show a wrong number.
+        setTimeout(() => {
+          cell.textContent = final;
+        }, DURATION + 300);
+      });
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            observer.disconnect(); // once only
+            run();
+          }
+        }
+      },
+      { threshold: 0.35 }
+    );
+
+    observer.observe(strip);
+  }
+</script>

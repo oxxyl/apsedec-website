@@ -1,0 +1,241 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+
+const partners = (await getCollection('partners')).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name)
+);
+const projects = await getCollection('projects');
+
+/**
+ * Relationship context is derived from the project record, not asserted.
+ * Names vary between the profile's partner list and its project entries
+ * ("GOAL" vs "GOAL Uganda", "NWSC" vs "NWSC — National Water and Sewerage
+ * Corporation"), so match on containment either way after normalising.
+ */
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+const relatedTo = (partnerName: string) => {
+  const n = norm(partnerName);
+  return projects.filter((p) =>
+    [...p.data.donor, ...(p.data.partners ?? [])].some((entry) => {
+      const e = norm(entry);
+      return e === n || e.startsWith(n + ' ') || n.startsWith(e + ' ') || e.includes(n);
+    })
+  );
+};
+
+const groups = [
+  { type: 'donor', title: 'Donors and funders', note: 'Institutions that have funded APSEDEC programmes.' },
+  { type: 'government', title: 'Government partners', note: 'Ministries and agencies APSEDEC delivers with.' },
+  { type: 'implementing', title: 'Implementing partners', note: 'Organisations APSEDEC has delivered alongside, in consortium or joint venture.' },
+] as const;
+
+const rows = groups.map((group) => ({
+  ...group,
+  items: partners
+    .filter((p) => p.data.type === group.type)
+    .map((p) => ({ entry: p, projects: relatedTo(p.data.name) })),
+}));
+
+const shapeOf = (logo: { width: number; height: number }) => {
+  const aspect = logo.width / logo.height;
+  if (aspect >= 2) return 'wide';
+  if (aspect >= 0.85) return 'square';
+  return 'tall';
+};
+---
+
+<BaseLayout
+  title="Partners"
+  description="The donors, government bodies and implementing organisations APSEDEC has worked with since 1999."
+>
+  <PageHeader
+    title="Who APSEDEC works with"
+    eyebrow="§ Partners"
+    lede={`${partners.length} organisations named in the 2026 company profile — funders, government counterparts and delivery partners.`}
+  />
+
+  {
+    rows.map((group, gi) => (
+      <section class:list={['section', gi % 2 === 1 && 'section--sunk']}>
+        <div class="container spread">
+          <div class="spread__margin">
+            <span>§ 0{gi + 1}</span>
+            <span>{group.type}</span>
+          </div>
+          <div>
+            <h2>{group.title}</h2>
+            <p class="pt__note">{group.note}</p>
+
+            <div class="ledger pt__list">
+              {group.items.map(({ entry, projects: linked }) => (
+                <article class="ledger__row pt__row">
+                  <div
+                    class:list={['pt__slot', !entry.data.logo && 'pt__slot--empty']}
+                    data-shape={entry.data.logo ? shapeOf(entry.data.logo) : undefined}
+                  >
+                    {entry.data.logo ? (
+                      entry.data.logo.format === 'svg' ? (
+                        <img
+                          src={entry.data.logo.src}
+                          width={entry.data.logo.width}
+                          height={entry.data.logo.height}
+                          alt={entry.data.name}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : (
+                        <Image
+                          src={entry.data.logo}
+                          alt={entry.data.name}
+                          width={260}
+                          format="webp"
+                          quality={80}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      )
+                    ) : (
+                      <span class="pt__awaiting">{entry.data.name}</span>
+                    )}
+                  </div>
+
+                  <div class="pt__body">
+                    <h3 class="pt__name">{entry.data.name}</h3>
+                    {linked.length > 0 ? (
+                      <ul class="pt__projects">
+                        {linked.map((p) => (
+                          <li>
+                            <a href={`/projects/${p.id}/`}>{p.data.title}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p class="pt__none mono">
+                        Named as a partner in the 2026 profile. No project in the
+                        record lists them directly.
+                      </p>
+                    )}
+                  </div>
+
+                  <span class="mono pt__count">
+                    {linked.length || '—'}
+                    {linked.length ? (linked.length === 1 ? ' project' : ' projects') : ''}
+                  </span>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    ))
+  }
+</BaseLayout>
+
+<style>
+  .pt__note {
+    color: var(--text-muted);
+    margin-top: var(--space-2xs);
+    margin-bottom: var(--space-l);
+  }
+
+  .pt__list {
+    margin-bottom: var(--space-m);
+  }
+
+  .pt__row {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-2xs);
+    padding-block: var(--space-s);
+  }
+
+  @media (min-width: 48rem) {
+    .pt__row {
+      grid-template-columns: 9rem minmax(0, 1fr) minmax(0, 7rem);
+      column-gap: var(--space-l);
+      align-items: start;
+    }
+  }
+
+  .pt__slot {
+    display: grid;
+    place-items: center;
+    min-height: 4rem;
+    padding: var(--space-2xs);
+    border: var(--hairline);
+    background: #ffffff;
+    max-width: 9rem;
+  }
+
+  .pt__slot--empty {
+    border-style: dashed;
+    background: var(--paper-sunk);
+  }
+
+  .pt__slot :global(img) {
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .pt__slot[data-shape='wide'] :global(img) {
+    max-height: 2rem;
+  }
+
+  .pt__slot[data-shape='square'] :global(img) {
+    max-height: 2.6rem;
+  }
+
+  .pt__slot[data-shape='tall'] :global(img) {
+    max-height: 3.4rem;
+  }
+
+  .pt__awaiting {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    line-height: 1.3;
+    text-align: center;
+    color: var(--text-muted);
+    text-wrap: balance;
+  }
+
+  .pt__name {
+    font-size: var(--step-1);
+    margin-bottom: var(--space-3xs);
+  }
+
+  .pt__projects {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    font-size: var(--step--1);
+  }
+
+  .pt__none {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+    max-width: 46ch;
+  }
+
+  .pt__count {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .pt__count {
+      text-align: right;
+    }
+  }
+
+  .section--sunk {
+    background: var(--paper-sunk);
+    border-block: var(--hairline-faint);
+  }
+</style>

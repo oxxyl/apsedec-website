@@ -1,0 +1,139 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Placeholder from '../components/Placeholder.astro';
+
+const resources = (await getCollection('resources')).sort(
+  (a, b) => b.data.year - a.data.year
+);
+
+/* Documents the brief names as expected, so the page shows what is coming
+   rather than an empty room. None of these are published yet. */
+const expected = [
+  { title: 'Safeguarding Policy', category: 'policy' },
+  { title: 'Code of Conduct', category: 'policy' },
+  { title: 'Annual reports', category: 'report' },
+  { title: 'Financial statements', category: 'financial' },
+];
+
+const byCategory = {
+  report: 'Report',
+  policy: 'Policy',
+  financial: 'Financial',
+} as const;
+---
+
+<BaseLayout
+  title="Resources"
+  description="APSEDEC policies, annual reports and financial statements, available to download."
+>
+  <PageHeader
+    title="Reports and policies"
+    eyebrow="§ Resources"
+    lede="Governance documents, annual reports and financial statements, published for donors and partners."
+  />
+
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 01</span>
+        <span>Documents</span>
+      </div>
+
+      <div>
+        {
+          resources.length > 0 ? (
+            <div class="ledger res__list">
+              {resources.map((r) => (
+                <article class="ledger__row res__row">
+                  <span class="mono res__year num">{r.data.year}</span>
+                  <div>
+                    <h2 class="res__title">
+                      <a href={r.data.file} download>
+                        {r.data.title}
+                      </a>
+                    </h2>
+                  </div>
+                  <span class="stamp res__badge">{byCategory[r.data.category]}</span>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <>
+              <h2 class="res__heading">Nothing published yet</h2>
+              <p class="res__lede">
+                No documents have been supplied for publication. The list below
+                is what this page is built to hold — each will appear with its
+                year, file type and size once the PDFs arrive.
+              </p>
+
+              <div class="ledger res__list">
+                {expected.map((e) => (
+                  <div class="ledger__row res__row res__row--pending">
+                    <span class="mono res__year">—</span>
+                    <span class="res__pending-title">{e.title}</span>
+                    <span class="stamp res__badge">
+                      {byCategory[e.category as keyof typeof byCategory]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <Placeholder
+                label="RESOURCE PDFs"
+                note="For each document: the file, its title, year and category (report / policy / financial). Drop them in public/resources/ and add one Markdown file per document — the recipe is in the README."
+              />
+            </>
+          )
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .res__heading {
+    font-size: var(--step-2);
+  }
+
+  .res__lede {
+    color: var(--text-muted);
+    margin-top: var(--space-2xs);
+    margin-bottom: var(--space-l);
+  }
+
+  .res__list {
+    margin-bottom: var(--space-l);
+  }
+
+  .res__row {
+    grid-template-columns: 4rem minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: var(--space-m);
+  }
+
+  .res__year {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .res__title {
+    font-size: var(--step-0);
+  }
+
+  .res__pending-title {
+    color: var(--text-muted);
+  }
+
+  .res__badge {
+    justify-self: end;
+  }
+
+  /* Dashed, not faded. Opacity dropped the navy stamp to 4.36:1; a dashed
+     border says "pending" in the site's own placeholder language and keeps
+     the text at full contrast. */
+  .res__row--pending .res__badge {
+    border-style: dashed;
+  }
+</style>

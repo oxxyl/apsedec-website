@@ -1,0 +1,158 @@
+---
+import Logo from './Logo.astro';
+import Placeholder from './Placeholder.astro';
+import { SITE, CONTACT, NAV, OFFICES } from '../config';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer on-brand">
+  <div class="container">
+    <div class="site-footer__top">
+      <div class="site-footer__brand">
+        <Logo variant="white" size="md" />
+        <p class="site-footer__tagline">{SITE.tagline}</p>
+      </div>
+
+      <div class="site-footer__cols">
+        <section class="site-footer__col">
+          <h2 class="label">Head office</h2>
+          <address class="site-footer__address">
+            {CONTACT.hq.street}<br />
+            {CONTACT.hq.postal}<br />
+            {CONTACT.hq.town}
+          </address>
+          <p class="label site-footer__sublabel">Field offices</p>
+          <p class="site-footer__plain">
+            {OFFICES.filter((o) => o.type !== 'head').map((o) => o.town).join(' · ')}
+          </p>
+        </section>
+
+        <section class="site-footer__col">
+          <h2 class="label">Contact</h2>
+          <ul class="site-footer__list mono">
+            {
+              CONTACT.phones.map((phone) => (
+                <li>
+                  <a href={`tel:+256${phone.replace(/^0/, '')}`}>{phone}</a>
+                </li>
+              ))
+            }
+            <li><a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></li>
+          </ul>
+        </section>
+
+        <section class="site-footer__col">
+          <h2 class="label">Site</h2>
+          <ul class="site-footer__list">
+            {NAV.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+            <li><a href="/donate/">Donate</a></li>
+          </ul>
+        </section>
+      </div>
+    </div>
+
+    <div class="site-footer__bottom">
+      <p class="mono site-footer__legal">
+        {SITE.legalName} · Company limited by guarantee, Uganda
+      </p>
+      <p class="mono site-footer__legal">
+        © {year} APSEDEC · Registration No. {SITE.registrationNo} · Established {
+          SITE.established
+        }
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--green-900);
+    margin-top: auto;
+    padding-block: var(--space-2xl) var(--space-l);
+  }
+
+  .site-footer__top {
+    display: grid;
+    gap: var(--space-xl);
+  }
+
+  @media (min-width: 62rem) {
+    .site-footer__top {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+      gap: var(--space-2xl);
+    }
+  }
+
+  .site-footer__tagline {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+    color: var(--green-200);
+    margin-top: var(--space-m);
+    max-width: 28ch;
+  }
+
+  .site-footer__cols {
+    display: grid;
+    gap: var(--space-l);
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  }
+
+  .site-footer__col h2 {
+    padding-bottom: var(--space-2xs);
+    border-bottom: 1px solid var(--rule-on-green);
+    margin-bottom: var(--space-s);
+  }
+
+  .site-footer__address,
+  .site-footer__plain {
+    font-style: normal;
+    font-size: var(--step--1);
+    line-height: 1.55;
+    color: var(--green-200);
+  }
+
+  .site-footer__sublabel {
+    margin-top: var(--space-s);
+    margin-bottom: var(--space-3xs);
+  }
+
+  .site-footer__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    font-size: var(--step--1);
+  }
+
+  .site-footer__list a {
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+
+  /* Gold is punctuation, never a line (§4.1) — so hover colours the text and
+     the underline stays the on-green rule colour. */
+  .site-footer__list a:hover {
+    color: var(--gold);
+    border-bottom-color: var(--rule-on-green);
+  }
+
+  .site-footer__bottom {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-s);
+    border-top: 1px solid var(--rule-on-green);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-m);
+  }
+
+  .site-footer__legal {
+    font-size: var(--step--2);
+    color: var(--text-on-brand-muted);
+    max-width: none;
+  }
+</style>

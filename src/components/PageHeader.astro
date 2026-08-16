@@ -1,0 +1,59 @@
+---
+/**
+ * Interior page header — a green band carrying the page title.
+ *
+ * Keeps green leading on content pages the way the hero does on the home
+ * page, and gives the record-book margin column a job on every page.
+ */
+interface Props {
+  title: string;
+  /** Mono label in the margin column, e.g. "§ About". */
+  eyebrow?: string;
+  lede?: string;
+}
+
+const { title, eyebrow, lede } = Astro.props;
+---
+
+<header class="pagehead on-brand">
+  <div class="container spread">
+    <div class="spread__margin pagehead__margin">
+      {eyebrow && <span>{eyebrow}</span>}
+    </div>
+    <div>
+      <h1 class="pagehead__title">{title}</h1>
+      {lede && <p class="pagehead__lede">{lede}</p>}
+    </div>
+  </div>
+</header>
+
+<style>
+  .pagehead {
+    background: var(--green-900);
+    border-bottom: var(--hairline);
+    padding-block: var(--space-xl) var(--space-2xl);
+  }
+
+  .pagehead__margin {
+    color: var(--text-on-brand-muted);
+  }
+
+  @media (min-width: 62rem) {
+    .pagehead__margin {
+      border-right-color: var(--rule-on-green);
+    }
+  }
+
+  .pagehead__title {
+    font-size: var(--step-3);
+    max-width: 22ch;
+  }
+
+  .pagehead__lede {
+    margin-top: var(--space-m);
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+    color: var(--green-200);
+    max-width: 52ch;
+  }
+</style>

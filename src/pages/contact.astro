@@ -1,0 +1,441 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Placeholder from '../components/Placeholder.astro';
+import { CONTACT, OFFICES, WEB3FORMS_ACCESS_KEY } from '../config';
+
+/* The form posts straight to Web3Forms (no server, BRIEF.md §3.4). Until the
+   client supplies an access key it ships disabled with the email route live,
+   the same gating pattern as DONATIONS_LIVE. */
+const formLive = WEB3FORMS_ACCESS_KEY.length > 0;
+
+const head = OFFICES.find((o) => o.type === 'head')!;
+const others = OFFICES.filter((o) => o.type !== 'head');
+---
+
+<BaseLayout
+  title="Contact"
+  description="Reach APSEDEC at the head office in Kitgum or any of its ten field and liaison offices across Uganda."
+>
+  <PageHeader
+    title="Get in touch"
+    eyebrow="§ Contact"
+    lede="Head office in Kitgum, with ten further offices across Northern, Eastern, Central and Western Uganda."
+  />
+
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 01</span>
+        <span>Message</span>
+      </div>
+
+      <div class="contact__grid">
+        {/* --- Form ------------------------------------------------------- */}
+        <div>
+          <h2>Send a message</h2>
+
+          {
+            !formLive && (
+              <Placeholder
+                label="WEB3FORMS ACCESS KEY"
+                note="Create a free account at web3forms.com with the APSEDEC address and paste the key into src/config.ts. The form below is disabled until then — email and phone work now."
+              />
+            )
+          }
+
+          <form
+            class="form"
+            data-form
+            action="https://api.web3forms.com/submit"
+            method="POST"
+          >
+            <input type="hidden" name="access_key" value={WEB3FORMS_ACCESS_KEY} />
+            <input type="hidden" name="subject" value="Website enquiry — apsedec.com" />
+            <input type="hidden" name="from_name" value="APSEDEC website" />
+
+            {/* Honeypot — real people never see or fill this. */}
+            <div class="form__honey" aria-hidden="true">
+              <label for="botcheck">Leave this empty</label>
+              <input id="botcheck" type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div class="form__field">
+              <label class="label" for="name">Your name</label>
+              <input id="name" name="name" type="text" required disabled={!formLive} autocomplete="name" />
+            </div>
+
+            <div class="form__field">
+              <label class="label" for="email">Email</label>
+              <input id="email" name="email" type="email" required disabled={!formLive} autocomplete="email" />
+            </div>
+
+            <div class="form__field">
+              <label class="label" for="organisation">Organisation <span class="form__optional">optional</span></label>
+              <input id="organisation" name="organisation" type="text" disabled={!formLive} autocomplete="organization" />
+            </div>
+
+            <div class="form__field">
+              <label class="label" for="message">Message</label>
+              <textarea id="message" name="message" rows="6" required disabled={!formLive}></textarea>
+            </div>
+
+            <button type="submit" class="btn btn--green" disabled={!formLive}>
+              {formLive ? 'Send message' : 'Form not yet enabled'}
+            </button>
+
+            <p class="form__status" data-status role="status" aria-live="polite" hidden></p>
+          </form>
+        </div>
+
+        {/* --- Direct routes ---------------------------------------------- */}
+        <aside class="contact__direct">
+          <h2 class="contact__aside-title">Direct</h2>
+          <dl class="ledger contact__meta">
+            <div class="ledger__row contact__row">
+              <dt class="mono contact__key">Email</dt>
+              <dd class="contact__value">
+                <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+              </dd>
+            </div>
+            <div class="ledger__row contact__row">
+              <dt class="mono contact__key">Phone</dt>
+              <dd class="contact__value mono">
+                {CONTACT.phones.map((p) => (
+                  <a href={`tel:+256${p.replace(/^0/, '')}`} class="contact__phone">{p}</a>
+                ))}
+              </dd>
+            </div>
+            <div class="ledger__row contact__row">
+              <dt class="mono contact__key">Also</dt>
+              <dd class="contact__value mono contact__legacy">
+                {CONTACT.legacyEmails.map((e) => (
+                  <a href={`mailto:${e}`}>{e}</a>
+                ))}
+              </dd>
+            </div>
+          </dl>
+          <p class="contact__note">
+            <Placeholder label="CONFIRMATION OF THE PRIMARY EMAIL ADDRESS" inline /> — the
+            2026 profile prints the Yahoo address; the site shows {CONTACT.email}.
+          </p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  {/* --- Offices ---------------------------------------------------------- */}
+  <section class="section section--sunk">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 02</span>
+        <span>Offices</span>
+      </div>
+
+      <div>
+        <h2>Where to find APSEDEC</h2>
+
+        <article class="office office--head">
+          <p class="mono office__tag">Head office</p>
+          <h3 class="office__town">{head.town}</h3>
+          <address class="office__address">
+            {head.address}<br />
+            {head.town}, Uganda
+          </address>
+          <p class="mono office__phone">{head.phone}</p>
+        </article>
+
+        <div class="ledger offices">
+          {
+            others.map((office) => (
+              <article class="ledger__row office__row">
+                <h3 class="office__name">
+                  {office.town}
+                  {office.type === 'liaison' && <span class="office__type"> liaison</span>}
+                </h3>
+                <div class="office__detail">
+                  {'address' in office && office.address ? (
+                    <address class="office__address">{office.address}</address>
+                  ) : (
+                    <Placeholder label={`${office.town.toUpperCase()} ADDRESS`} inline />
+                  )}
+                </div>
+                <span class="mono office__phone">
+                  {'phone' in office && office.phone ? (
+                    office.phone
+                  ) : (
+                    <Placeholder label="PHONE" inline />
+                  )}
+                </span>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .contact__grid {
+    display: grid;
+    gap: var(--space-xl);
+  }
+
+  @media (min-width: 56rem) {
+    .contact__grid {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+  }
+
+  /* --- Form ---------------------------------------------------------------- */
+  .form {
+    margin-top: var(--space-l);
+    display: grid;
+    gap: var(--space-m);
+    max-width: 34rem;
+  }
+
+  .form__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+  }
+
+  .form input[type='text'],
+  .form input[type='email'],
+  .form textarea {
+    font-family: var(--font-body);
+    font-size: var(--step-0);
+    padding: 0.6em 0.7em;
+    min-height: 44px;
+    background: var(--paper-raised);
+    border: var(--hairline);
+    color: var(--ink);
+    width: 100%;
+  }
+
+  .form textarea {
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  .form input:disabled,
+  .form textarea:disabled,
+  .form button:disabled {
+    background: var(--paper-sunk);
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+
+  .form button {
+    justify-self: start;
+  }
+
+  .form__optional {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .form__honey {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .form__status {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    padding: var(--space-2xs) var(--space-s);
+    border: var(--hairline);
+    max-width: none;
+  }
+
+  .form__status[hidden] {
+    display: none;
+  }
+
+  .form__status[data-state='ok'] {
+    background: var(--green-050);
+    color: var(--green-800);
+  }
+
+  .form__status[data-state='error'] {
+    background: var(--gold-wash);
+    color: var(--navy);
+  }
+
+  /* --- Direct -------------------------------------------------------------- */
+  .contact__aside-title {
+    font-size: var(--step-1);
+  }
+
+  .contact__meta {
+    margin-top: var(--space-m);
+  }
+
+  .contact__row {
+    grid-template-columns: 5rem minmax(0, 1fr);
+    column-gap: var(--space-s);
+    align-items: baseline;
+  }
+
+  .contact__key {
+    font-size: var(--step--2);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--text-muted);
+  }
+
+  .contact__value {
+    margin: 0;
+    font-size: var(--step--1);
+  }
+
+  /* Phone and email links are the primary action on a contact page — give
+     them a real tap target rather than a line of inline text. */
+  .contact__value a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-block: 0.2em;
+  }
+
+  .contact__phone,
+  .contact__legacy a {
+    display: flex;
+  }
+
+  .contact__note {
+    margin-top: var(--space-m);
+    font-size: var(--step--2);
+    color: var(--text-muted);
+    max-width: none;
+  }
+
+  /* --- Offices ------------------------------------------------------------- */
+  .office--head {
+    margin-block: var(--space-l) var(--space-xl);
+    padding: var(--space-m);
+    border: var(--hairline);
+    background: var(--paper-raised);
+    max-width: 30rem;
+  }
+
+  .office__tag {
+    font-size: var(--step--2);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--text-muted);
+  }
+
+  .office__town {
+    font-size: var(--step-2);
+    margin-block: var(--space-3xs) var(--space-2xs);
+  }
+
+  .office__address {
+    font-style: normal;
+    font-size: var(--step--1);
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  .office__phone {
+    font-size: var(--step--1);
+    color: var(--navy);
+    margin-top: var(--space-2xs);
+  }
+
+  .office__row {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-3xs);
+  }
+
+  @media (min-width: 48rem) {
+    .office__row {
+      grid-template-columns: 9rem minmax(0, 1fr) minmax(0, 12rem);
+      column-gap: var(--space-l);
+      align-items: baseline;
+    }
+  }
+
+  .office__name {
+    font-size: var(--step-0);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--navy);
+  }
+
+  .office__type {
+    color: var(--text-muted);
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.85em;
+  }
+
+  .office__row .office__phone {
+    margin-top: 0;
+    font-size: var(--step--2);
+  }
+
+  @media (min-width: 48rem) {
+    .office__row .office__phone {
+      text-align: right;
+    }
+  }
+
+  .section--sunk {
+    background: var(--paper-sunk);
+    border-block: var(--hairline-faint);
+  }
+</style>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-form]');
+  const status = document.querySelector<HTMLElement>('[data-status]');
+
+  if (form && status) {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault(); // inline states, no redirect (BRIEF.md §5)
+
+      const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+      const label = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Sending…';
+      status.hidden = true;
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: { Accept: 'application/json' },
+          body: new FormData(form),
+        });
+
+        if (response.ok) {
+          form.reset();
+          status.dataset.state = 'ok';
+          status.textContent = 'Thank you — your message has been sent. We will reply by email.';
+        } else {
+          throw new Error(String(response.status));
+        }
+      } catch {
+        status.dataset.state = 'error';
+        status.textContent =
+          'Sorry — that did not send. Please email info@apsedec.org instead.';
+      } finally {
+        status.hidden = false;
+        button.disabled = false;
+        button.textContent = label;
+      }
+    });
+  }
+</script>

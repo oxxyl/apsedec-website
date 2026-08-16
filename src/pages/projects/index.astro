@@ -1,0 +1,345 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+
+const projects = (await getCollection('projects')).sort((a, b) =>
+  b.data.period.start.localeCompare(a.data.period.start)
+);
+
+/* Filter vocabularies, derived from the content rather than hand-listed. */
+const donors = [...new Set(projects.flatMap((p) => p.data.donor))].sort();
+const districts = [...new Set(projects.flatMap((p) => p.data.districts))].sort();
+
+const fmtMonth = (s: string) => {
+  const [y, m] = s.split('-');
+  if (!m) return y;
+  const month = new Date(Number(y), Number(m) - 1).toLocaleString('en-GB', { month: 'short' });
+  return `${month} ${y}`;
+};
+const period = (p: { start: string; end?: string }) =>
+  p.end ? `${fmtMonth(p.start)} – ${fmtMonth(p.end)}` : `From ${fmtMonth(p.start)}`;
+
+const active = projects.filter((p) => p.data.status === 'active').length;
+---
+
+<BaseLayout
+  title="Projects"
+  description="Every APSEDEC project on record — capacity building, financial inclusion and agribusiness across Uganda, filterable by status, donor and district."
+>
+  <PageHeader
+    title="The project record"
+    eyebrow="§ Projects"
+    lede={`${projects.length} engagements on record, ${active} of them active — delivered for IFAD, the World Bank, CARE International, USAID and the Government of Uganda.`}
+  />
+
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 01</span>
+        <span>Filter</span>
+      </div>
+
+      <div>
+        {/* Filters are an enhancement: with no JS every project stays listed. */}
+        <form class="filters" data-filters>
+          <div class="filters__field">
+            <label class="label" for="f-status">Status</label>
+            <select id="f-status" data-filter="status">
+              <option value="">All ({projects.length})</option>
+              <option value="active">Active ({active})</option>
+              <option value="completed">Completed ({projects.length - active})</option>
+            </select>
+          </div>
+
+          <div class="filters__field">
+            <label class="label" for="f-donor">Donor</label>
+            <select id="f-donor" data-filter="donor">
+              <option value="">All donors</option>
+              {donors.map((d) => <option value={d}>{d}</option>)}
+            </select>
+          </div>
+
+          <div class="filters__field">
+            <label class="label" for="f-district">District</label>
+            <select id="f-district" data-filter="district">
+              <option value="">All districts</option>
+              {districts.map((d) => <option value={d}>{d}</option>)}
+            </select>
+          </div>
+
+          <button type="button" class="filters__clear mono" data-clear hidden>
+            Clear
+          </button>
+        </form>
+
+        <p class="filters__count mono" data-count aria-live="polite">
+          Showing all {projects.length} projects
+        </p>
+
+        <div class="ledger projects" data-list>
+          {
+            projects.map((project) => (
+              <article
+                class="ledger__row project"
+                data-project
+                data-status={project.data.status}
+                data-donor={project.data.donor.join('|')}
+                data-district={project.data.districts.join('|')}
+              >
+                <div class="project__meta">
+                  <span class="mono project__period">{period(project.data.period)}</span>
+                  <span class:list={['mono', 'project__status', `project__status--${project.data.status}`]}>
+                    {project.data.status}
+                  </span>
+                </div>
+
+                <div class="project__main">
+                  <h2 class="project__title">
+                    <a href={`/projects/${project.id}/`}>{project.data.title}</a>
+                  </h2>
+                  <p class="project__summary">{project.data.summary}</p>
+                  <p class="mono project__donor">{project.data.donor.join(' · ')}</p>
+                </div>
+
+                <div class="project__right">
+                  {project.data.reach && <span class="project__reach num">{project.data.reach}</span>}
+                  <span class="mono project__districts">
+                    {project.data.districts.length}
+                    {project.data.districts.length === 1 ? ' district' : ' districts'}
+                  </span>
+                </div>
+              </article>
+            ))
+          }
+        </div>
+
+        <p class="projects__empty" data-empty hidden>
+          No projects match those filters.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--space-s);
+    padding-bottom: var(--space-m);
+    border-bottom: var(--hairline);
+  }
+
+  .filters__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    min-width: 10rem;
+    flex: 1 1 12rem;
+  }
+
+  .filters select {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    padding: 0.6em 0.7em;
+    min-height: 44px;
+    background: var(--paper-raised);
+    border: var(--hairline);
+    color: var(--ink);
+    width: 100%;
+  }
+
+  .filters__clear {
+    background: transparent;
+    border: var(--hairline);
+    color: var(--navy);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    padding: 0.6em 1em;
+    min-height: 44px;
+    cursor: pointer;
+  }
+
+  .filters__clear:hover {
+    background: var(--gold-wash);
+  }
+
+  .filters__clear[hidden] {
+    display: none;
+  }
+
+  .filters__count {
+    margin-top: var(--space-s);
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  /* --- Project rows ------------------------------------------------------- */
+  .projects {
+    margin-top: var(--space-2xs);
+  }
+
+  .project {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-2xs);
+  }
+
+  .project[hidden] {
+    display: none;
+  }
+
+  @media (min-width: 52rem) {
+    .project {
+      grid-template-columns: 11rem minmax(0, 1fr) minmax(0, 11rem);
+      align-items: start;
+    }
+  }
+
+  .project__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs) var(--space-2xs);
+  }
+
+  @media (min-width: 52rem) {
+    .project__meta {
+      flex-direction: column;
+    }
+  }
+
+  .project__period {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .project__status {
+    font-size: var(--step--2);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+  }
+
+  .project__status--active {
+    color: var(--green-700);
+  }
+
+  .project__status--active::before {
+    content: '● ';
+  }
+
+  .project__status--completed {
+    color: var(--text-muted);
+  }
+
+  .project__status--completed::before {
+    content: '○ ';
+  }
+
+  .project__title {
+    font-size: var(--step-1);
+    margin-bottom: var(--space-3xs);
+  }
+
+  .project__title a {
+    text-decoration: none;
+    color: var(--heading);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .project__title a:hover {
+    color: var(--gold-deep);
+    border-bottom-color: var(--navy);
+  }
+
+  .project__summary {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    max-width: 60ch;
+  }
+
+  .project__donor {
+    font-size: var(--step--2);
+    color: var(--navy);
+    margin-top: var(--space-3xs);
+  }
+
+  .project__right {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs) var(--space-s);
+  }
+
+  @media (min-width: 52rem) {
+    .project__right {
+      flex-direction: column;
+      text-align: right;
+    }
+  }
+
+  .project__reach {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 500;
+    color: var(--navy);
+  }
+
+  .project__districts {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .projects__empty {
+    margin-top: var(--space-l);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .projects__empty[hidden] {
+    display: none;
+  }
+</style>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-filters]');
+
+  if (form) {
+    const rows = Array.from(document.querySelectorAll<HTMLElement>('[data-project]'));
+    const count = document.querySelector<HTMLElement>('[data-count]')!;
+    const empty = document.querySelector<HTMLElement>('[data-empty]')!;
+    const clear = document.querySelector<HTMLButtonElement>('[data-clear]')!;
+    const selects = Array.from(form.querySelectorAll<HTMLSelectElement>('[data-filter]'));
+
+    const apply = () => {
+      const want = Object.fromEntries(
+        selects.map((s) => [s.dataset.filter!, s.value])
+      );
+      let shown = 0;
+
+      for (const row of rows) {
+        const matches =
+          (!want.status || row.dataset.status === want.status) &&
+          (!want.donor || (row.dataset.donor ?? '').split('|').includes(want.donor)) &&
+          (!want.district || (row.dataset.district ?? '').split('|').includes(want.district));
+        row.hidden = !matches;
+        if (matches) shown++;
+      }
+
+      const filtered = selects.some((s) => s.value);
+      count.textContent = filtered
+        ? `Showing ${shown} of ${rows.length} projects`
+        : `Showing all ${rows.length} projects`;
+      empty.hidden = shown > 0;
+      clear.hidden = !filtered;
+    };
+
+    selects.forEach((s) => s.addEventListener('change', apply));
+
+    clear.addEventListener('click', () => {
+      selects.forEach((s) => (s.value = ''));
+      apply();
+    });
+  }
+</script>

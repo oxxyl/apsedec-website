@@ -1,0 +1,116 @@
+/* ==========================================================================
+   APSEDEC — design tokens
+   Brand rules (BRIEF.md §4.1), non-negotiable:
+     - Green is PREDOMINANT. It carries the site.
+     - Navy is STRUCTURE. Every line, rule, hairline and border is navy.
+     - Gold is PUNCTUATION ONLY. Never a line, rule or border.
+     - No colour outside this system. No gradients. No shadows.
+   ========================================================================== */
+
+:root {
+  /* --- Green ramp: derived from the brand base #1B7340 --------------------
+     deep forest -> pale leaf. Green surfaces should dominate every page. */
+  --green-900: #0c3a20; /* hero panel, footer ground */
+  --green-800: #0f4728;
+  --green-700: #12522e; /* donate band, hover on green surfaces */
+  --green-600: #1b7340; /* BRAND BASE — primary fills, active districts */
+  --green-500: #2b8b53;
+  --green-400: #4f9a6d; /* rules on green surfaces */
+  --green-300: #7fb394; /* secondary text on green */
+  --green-200: #a8cdb6;
+  --green-100: #d3e5da;
+  --green-050: #edf4ef; /* section tints, table zebra */
+
+  /* --- Navy: structure only ---------------------------------------------- */
+  --navy: #1e3a5f;
+  --navy-strong: #162c48;
+  --rule: rgb(30 58 95 / 28%); /* ledger baselines — navy, low alpha */
+  --rule-on-green: rgb(255 255 255 / 22%);
+
+  /* --- Ink & grounds ------------------------------------------------------
+     Grounds are pale GREEN, not warm off-white — the site should read as
+     shades of green top to bottom, never as a paper site with green bands.
+     Ink stays navy-derived per §4.1. */
+  --ink: #14243a; /* body text — near-black, navy-derived */
+  --ink-muted: #47596d;
+  --paper: #e7f1e8; /* pale leaf — the default page ground */
+  --paper-sunk: #d9e9dc; /* recessed ground, table zebra alt */
+  --paper-raised: #f2f8f2; /* lifted cards on the pale ground */
+
+  /* --- Gold: punctuation only -------------------------------------------- */
+  --gold: #d4a843;
+  /* Gold text on the pale grounds. Clears 4.5:1 on ALL THREE of --paper,
+     --paper-raised and --paper-sunk, so it is safe at any size — not just for
+     large display figures. Worst case is --paper-sunk at 4.54:1. */
+  --gold-deep: #7f621d;
+  --gold-wash: rgb(212 168 67 / 18%); /* focus fill, map hover */
+
+  /* --- Semantic ----------------------------------------------------------- */
+  --surface: var(--paper);
+  --surface-brand: var(--green-900);
+  --text: var(--ink);
+  --text-muted: var(--ink-muted);
+  --heading: var(--green-900); /* headings are dark green on pale grounds */
+  --text-on-brand: #ffffff;
+  /* Muted text on ANY green surface. Uses green-200, not green-300: green-300
+     is only safe on --green-900 (5.35:1) and drops to 4.50 on --green-800 and
+     3.86 on --green-700. green-200 clears 4.5:1 on all three, so a green band
+     can change shade without silently breaking contrast. */
+  --text-on-brand-muted: var(--green-200);
+  --focus: var(--navy);
+
+  /* --- Type ---------------------------------------------------------------
+     Body/UI: Carlito (Calibri-metric, APSEDEC's print standard)
+     Display: Zilla Slab — engineered slab, reads stamped not editorial
+     Data:    IBM Plex Mono — tabular figures for ledgers, codes, map labels */
+  --font-body: 'Carlito', 'Calibri', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Zilla Slab', Georgia, 'Times New Roman', serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  /* Modular scale — 1.25 at 360px, 1.333 at 1180px. */
+  --step--2: clamp(0.694rem, 0.68rem + 0.06vw, 0.75rem);
+  --step--1: clamp(0.833rem, 0.81rem + 0.11vw, 0.938rem);
+  --step-0: clamp(1.0625rem, 1.04rem + 0.11vw, 1.125rem);
+  --step-1: clamp(1.266rem, 1.21rem + 0.28vw, 1.5rem);
+  --step-2: clamp(1.51rem, 1.4rem + 0.53vw, 2rem);
+  --step-3: clamp(1.8rem, 1.6rem + 0.95vw, 2.666rem);
+  --step-4: clamp(2.15rem, 1.8rem + 1.6vw, 3.55rem);
+
+  --leading-tight: 1.1;
+  --leading-snug: 1.28;
+  --leading-body: 1.6;
+  --measure: 66ch;
+  --tracking-label: 0.08em;
+
+  /* --- Space: 4px base ---------------------------------------------------- */
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-s: 1rem;
+  --space-m: 1.5rem;
+  --space-l: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4.5rem;
+  --space-3xl: 7rem;
+
+  /* --- Layout -------------------------------------------------------------
+     The record-book spread: a narrow mono margin column beside the content. */
+  --container: 1180px;
+  --gutter: clamp(1.25rem, 0.9rem + 1.6vw, 2.5rem);
+  --margin-col: 140px;
+  --ledger-row: 2.5rem; /* ruled baseline rhythm */
+
+  /* --- Lines: navy, always ------------------------------------------------ */
+  --hairline: 1px solid var(--navy);
+  --hairline-faint: 1px solid var(--rule);
+
+  /* --- Motion — one orchestrated moment per page (§4.6) -------------------- */
+  --ease: cubic-bezier(0.2, 0, 0.1, 1);
+  --dur-fast: 120ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+  }
+}

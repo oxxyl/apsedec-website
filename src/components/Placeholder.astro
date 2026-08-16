@@ -1,0 +1,24 @@
+---
+/**
+ * BRIEF.md §13 — placeholder convention.
+ * A visually obvious navy-bordered block. Never invented content.
+ * Every use must have a matching line in PENDING_INPUTS.md.
+ */
+interface Props {
+  /** What is missing, in the client's language. */
+  label: string;
+  /** Render inline within a sentence rather than as a block. */
+  inline?: boolean;
+  /** Optional extra note for the client. */
+  note?: string;
+}
+
+const { label, inline = false, note } = Astro.props;
+---
+
+<span
+  class:list={['placeholder', inline && 'placeholder--inline']}
+  data-pending
+>
+  [{label} — awaiting client]{note && <><br />{note}</>}
+</span>

@@ -1,0 +1,646 @@
+---
+import { getCollection } from 'astro:content';
+import { DISTRICTS, VIEWBOX } from '../data/uganda-districts';
+import { OFFICES, COVERAGE_ONLY } from '../config';
+
+/**
+ * Interactive Uganda district map (BRIEF.md §7).
+ *
+ * Inline SVG, no map library, no tiles, no runtime fetch. Active districts are
+ * derived at build time from the `districts` field across the projects
+ * collection.
+ *
+ * Progressive enhancement: the district list and every project link below the
+ * map are server-rendered and work with no JavaScript at all. The SVG and the
+ * <select> are both enhancements onto that same list.
+ */
+interface Props {
+  /** Run the staggered district reveal on first viewport entry. */
+  reveal?: boolean;
+  /** 'card' = home page; 'full' = /where-we-work/. */
+  variant?: 'card' | 'full';
+}
+
+const { reveal = false, variant = 'card' } = Astro.props;
+
+/**
+ * The 2020 OCHA boundaries predate Uganda's city/district splits, so a few
+ * project districts need mapping onto the polygon that contains them.
+ * Anything unmatched is reported at build time rather than silently dropped.
+ */
+const ALIASES: Record<string, string> = {
+  'gulu city': 'gulu',
+  'lira city': 'lira',
+};
+
+const slugify = (name: string) =>
+  name.toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+const projects = await getCollection('projects');
+
+type Entry = { title: string; href: string; status: string; donor: string };
+const byDistrict = new Map<string, Entry[]>();
+const unmatched: string[] = [];
+
+for (const project of projects) {
+  for (const districtName of project.data.districts) {
+    const slug = ALIASES[districtName.toLowerCase()] ?? slugify(districtName);
+    if (!DISTRICTS.some((d) => d.slug === slug)) {
+      unmatched.push(`${districtName} (${project.id})`);
+      continue;
+    }
+    const list = byDistrict.get(slug) ?? [];
+    list.push({
+      title: project.data.title,
+      href: `/projects/${project.id}/`,
+      status: project.data.status,
+      donor: project.data.donor.join(' · '),
+    });
+    byDistrict.set(slug, list);
+  }
+}
+
+/* Coverage shown on the profile map that no seeded project accounts for. */
+const coverageOnly = new Set<string>();
+for (const name of COVERAGE_ONLY) {
+  const slug = slugify(name);
+  if (!DISTRICTS.some((d) => d.slug === slug)) unmatched.push(`${name} (COVERAGE_ONLY)`);
+  else if (!byDistrict.has(slug)) coverageOnly.add(slug);
+}
+
+/* Office locations, placed on the district that contains them. */
+const officeBySlug = new Map<string, string[]>();
+for (const office of OFFICES) {
+  const slug = slugify(office.district);
+  if (!DISTRICTS.some((d) => d.slug === slug)) {
+    unmatched.push(`${office.district} (office: ${office.town})`);
+    continue;
+  }
+  officeBySlug.set(slug, [...(officeBySlug.get(slug) ?? []), office.town]);
+}
+
+if (unmatched.length) {
+  console.warn(
+    `[DistrictMap] names with no matching boundary: ${unmatched.join(', ')}`
+  );
+}
+
+/** Projects whose districts the client has not yet named (BRIEF.md §13). */
+const undisclosed = projects.filter((p) => p.data.districts.length === 0);
+
+/* Every district APSEDEC covers: project districts plus coverage-only. */
+const active = DISTRICTS.filter(
+  (d) => byDistrict.has(d.slug) || coverageOnly.has(d.slug)
+);
+const activeIndex = new Map(active.map((d, i) => [d.slug, i]));
+
+const officeMarkers = DISTRICTS.filter((d) => officeBySlug.has(d.slug)).map((d) => ({
+  ...d,
+  towns: officeBySlug.get(d.slug)!,
+}));
+
+const countFor = (slug: string) => byDistrict.get(slug)?.length ?? 0;
+---
+
+<section
+  class:list={['map', `map--${variant}`]}
+  data-map
+  data-reveal={reveal ? '' : undefined}
+>
+  <div class="map__stage">
+    <svg
+      class="map__svg"
+      viewBox={VIEWBOX}
+      role="group"
+      aria-label="Map of Uganda's districts. Districts where APSEDEC works are selectable."
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Inactive districts: decorative, not focusable, not announced. */}
+      <g class="map__inactive" aria-hidden="true">
+        {
+          DISTRICTS.filter((d) => !byDistrict.has(d.slug)).map((d) => (
+            <path d={d.d} data-district={d.slug} vector-effect="non-scaling-stroke" />
+          ))
+        }
+      </g>
+
+      {/* Active districts: focusable in north-to-south order. */}
+      <g class="map__active">
+        {
+          active.map((d) => {
+            const count = countFor(d.slug);
+            const offices = officeBySlug.get(d.slug);
+            const bits = [
+              count ? `${count} ${count === 1 ? 'project' : 'projects'}` : 'coverage',
+              offices ? `office in ${offices.join(', ')}` : null,
+            ].filter(Boolean);
+            return (
+              <path
+                d={d.d}
+                data-district={d.slug}
+                data-name={d.name}
+                data-count={count}
+                data-offices={offices ? offices.join(', ') : undefined}
+                style={`--i:${activeIndex.get(d.slug)}`}
+                vector-effect="non-scaling-stroke"
+                tabindex="0"
+                role="button"
+                aria-label={`${d.name} — ${bits.join(', ')}`}
+              />
+            );
+          })
+        }
+      </g>
+
+      {/* Office markers — a small gold dot ringed in navy, per the profile map. */}
+      <g class="map__offices" aria-hidden="true">
+        {
+          officeMarkers.map((o) => (
+            <circle cx={o.cx} cy={o.cy} r="7" vector-effect="non-scaling-stroke">
+              <title>{o.towns.join(', ')} office</title>
+            </circle>
+          ))
+        }
+      </g>
+    </svg>
+
+    <ul class="map__legend mono">
+      <li><span class="map__key map__key--coverage" aria-hidden="true"></span>Coverage</li>
+      <li><span class="map__key map__key--office" aria-hidden="true"></span>Offices</li>
+    </ul>
+
+    <div class="map__tooltip mono" data-tooltip hidden aria-hidden="true"></div>
+  </div>
+
+  <div class="map__aside">
+    <div class="map__controls">
+      <label class="label" for="district-select">Select a district</label>
+      <select id="district-select" class="map__select" data-select>
+        <option value="">All districts ({active.length})</option>
+        {
+          active.map((d) => {
+            const count = countFor(d.slug);
+            return (
+              <option value={d.slug}>
+                {d.name}
+                {count ? ` (${count})` : ' — coverage'}
+                {officeBySlug.has(d.slug) ? ' · office' : ''}
+              </option>
+            );
+          })
+        }
+      </select>
+    </div>
+
+    {/*
+      Prompt shown on the home card while nothing is selected. It replaces the
+      always-open district list, which now only appears on selection.
+    */}
+    {
+      variant === 'card' && (
+        <p class="map__prompt mono" data-prompt hidden>
+          Select a district on the map to see its projects.
+        </p>
+      )
+    }
+
+    {/*
+      Server-rendered list — the no-JS path and the a11y fallback in one.
+      JS filters this to the selected district; it never replaces it.
+    */}
+    <div
+      class="map__panel"
+      data-panel
+      data-collapsible={variant === 'card' ? '' : undefined}
+      aria-live="polite"
+    >
+      {/* The district names below are h3. Without this the page jumps h1 → h3,
+          which Lighthouse flags and screen-reader users feel as a missing level. */}
+      <h2 class="visually-hidden">Districts where APSEDEC works</h2>
+      <ul class="map__districts ledger">
+        {
+          active.map((d) => (
+            <li class="ledger__row map__district" data-entry={d.slug}>
+              <h3 class="map__district-name">
+                {d.name}
+                {officeBySlug.has(d.slug) && (
+                  <span class="map__office-badge">office</span>
+                )}
+              </h3>
+              {byDistrict.has(d.slug) ? (
+                <ul class="map__projects">
+                  {byDistrict.get(d.slug)!.map((p) => (
+                    <li>
+                      <a href={p.href}>{p.title}</a>
+                      <span class="mono map__project-meta">{p.donor}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p class="map__coverage-note">
+                  <span class="placeholder placeholder--inline">
+                    [PROGRAMME FOR THIS DISTRICT — awaiting client]
+                  </span>
+                </p>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+
+      {
+        undisclosed.length > 0 && (
+          <p class="map__note">
+            <span class="placeholder placeholder--inline">
+              [DISTRICT LISTS FOR {undisclosed.map((p) => p.data.title.split(' (')[0]).join(', ')} — awaiting client]
+            </span>{' '}
+            The 2026 profile gives sub-regions but does not name the districts,
+            so these projects cannot yet appear on the map.
+          </p>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .map {
+    display: grid;
+    gap: var(--space-l);
+    container-type: inline-size;
+  }
+
+  @media (min-width: 60rem) {
+    .map--full,
+    .map--card {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: var(--space-xl);
+      align-items: start;
+    }
+  }
+
+  .map__stage {
+    position: relative;
+  }
+
+  /* On the home card the map is the centrepiece but must not swallow the
+     fold — cap it and centre it. */
+  .map--card .map__stage {
+    max-width: 32rem;
+    margin-inline: auto;
+    width: 100%;
+  }
+
+  .map__svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* --- District fills ----------------------------------------------------
+     Inactive: pale ground. Active: brand green. Every boundary is a navy
+     hairline that stays 0.5px at any rendered size. */
+  /* Same light green as the page ground — the country is defined by its navy
+     hairlines, not by a lighter fill sitting on a different tint. */
+  .map__inactive path {
+    fill: var(--paper);
+    stroke: var(--navy);
+    stroke-width: 0.5;
+    stroke-opacity: 0.45;
+  }
+
+  .map__active path {
+    fill: var(--green-600);
+    stroke: var(--navy);
+    stroke-width: 0.75;
+    cursor: pointer;
+    transition: fill var(--dur-fast) var(--ease);
+  }
+
+  .map__active path:hover,
+  .map__active path:focus-visible,
+  .map__active path[data-selected] {
+    fill: var(--gold);
+  }
+
+  .map__active path:focus-visible {
+    outline: none; /* the fill change plus the navy stroke below carries focus */
+    stroke-width: 2.5;
+    stroke: var(--navy-strong);
+  }
+
+  /* --- Office markers ----------------------------------------------------
+     A dot, not a stroke — so gold stays legal here (§4.1 bars gold only from
+     lines, rules and borders). The ring around it is navy, like every other
+     boundary on the map. */
+  .map__offices circle {
+    fill: var(--gold);
+    stroke: var(--navy);
+    stroke-width: 1.5;
+    pointer-events: none;
+  }
+
+  /* --- Legend -------------------------------------------------------------- */
+  .map__legend {
+    list-style: none;
+    display: flex;
+    gap: var(--space-m);
+    padding: 0;
+    margin: var(--space-2xs) 0 0;
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .map__legend li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3xs);
+  }
+
+  .map__key {
+    width: 1rem;
+    height: 0.75rem;
+    border: 1px solid var(--navy);
+    display: inline-block;
+  }
+
+  .map__key--coverage {
+    background: var(--green-600);
+  }
+
+  .map__key--office {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+
+  .map__prompt {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    max-width: none;
+  }
+
+  .map__prompt[hidden] {
+    display: none;
+  }
+
+  /* Same treatment as .stamp — navy on the pale ground. Gold at this size
+     lands at 4.4:1, just under AA for small text. */
+  .map__office-badge {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--navy);
+    border: 1px solid var(--navy);
+    padding: 0.1em 0.4em;
+    margin-left: 0.5em;
+    vertical-align: middle;
+  }
+
+  .map__coverage-note {
+    max-width: none;
+  }
+
+  /* --- Reveal: one orchestrated motion moment, first entry only ---------- */
+  .map[data-reveal] .map__active path {
+    opacity: 1;
+  }
+
+  .map[data-reveal][data-revealing] .map__active path {
+    opacity: 0;
+    animation: district-post 380ms var(--ease) forwards;
+    animation-delay: calc(var(--i) * 45ms);
+  }
+
+  @keyframes district-post {
+    from {
+      opacity: 0;
+      fill: var(--green-200);
+    }
+    to {
+      opacity: 1;
+      fill: var(--green-600);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .map[data-reveal][data-revealing] .map__active path {
+      opacity: 1;
+      animation: none;
+    }
+  }
+
+  /* --- Tooltip: a field-note annotation, not a bubble -------------------- */
+  .map__tooltip {
+    position: absolute;
+    z-index: 3;
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+    background: var(--paper-raised);
+    border-top: 2px solid var(--navy);
+    padding: var(--space-3xs) var(--space-2xs);
+    font-size: var(--step--2);
+    line-height: 1.3;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+
+  .map__tooltip[hidden] {
+    display: none;
+  }
+
+  .map__tooltip b {
+    font-weight: 500;
+    display: block;
+  }
+
+  .map__tooltip span {
+    color: var(--text-muted);
+  }
+
+  /* --- Aside -------------------------------------------------------------- */
+  .map__controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    margin-bottom: var(--space-m);
+  }
+
+  .map__select {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    padding: 0.7em;
+    min-height: 44px; /* touch target — this is the primary path on mobile */
+    background: var(--paper-raised);
+    border: var(--hairline);
+    color: var(--ink);
+    max-width: 22rem;
+  }
+
+  .map__districts {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .map__district {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-3xs);
+  }
+
+  .map__district[hidden] {
+    display: none;
+  }
+
+  .map__district[data-selected] .map__district-name {
+    color: var(--gold-deep);
+  }
+
+  .map__district-name {
+    font-size: var(--step-0);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--navy);
+  }
+
+  .map__projects {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+  }
+
+  .map__projects a {
+    font-size: var(--step--1);
+  }
+
+  .map__project-meta {
+    display: block;
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .map__note {
+    margin-top: var(--space-m);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    max-width: none;
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-map]');
+
+  if (root) {
+    const svg = root.querySelector('svg')!;
+    const stage = root.querySelector<HTMLElement>('.map__stage')!;
+    const tooltip = root.querySelector<HTMLElement>('[data-tooltip]')!;
+    const select = root.querySelector<HTMLSelectElement>('[data-select]')!;
+    const paths = Array.from(
+      root.querySelectorAll<SVGPathElement>('.map__active path')
+    );
+    const entries = Array.from(
+      root.querySelectorAll<HTMLElement>('[data-entry]')
+    );
+
+    // --- tooltip ----------------------------------------------------------
+    const showTooltip = (path: SVGPathElement) => {
+      const name = path.dataset.name ?? '';
+      const count = Number(path.dataset.count ?? 0);
+      const offices = path.dataset.offices;
+      tooltip.innerHTML = '';
+      const b = document.createElement('b');
+      b.textContent = name;
+      const s = document.createElement('span');
+      s.textContent = [
+        count ? `${count} ${count === 1 ? 'project' : 'projects'}` : 'coverage',
+        offices ? `office: ${offices}` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ');
+      tooltip.append(b, s);
+
+      const box = path.getBoundingClientRect();
+      const host = stage.getBoundingClientRect();
+      tooltip.style.left = `${box.left - host.left + box.width / 2}px`;
+      tooltip.style.top = `${box.top - host.top}px`;
+      tooltip.hidden = false;
+    };
+
+    const hideTooltip = () => {
+      tooltip.hidden = true;
+    };
+
+    // --- selection --------------------------------------------------------
+    const panel = root.querySelector<HTMLElement>('[data-panel]')!;
+    const prompt = root.querySelector<HTMLElement>('[data-prompt]');
+    /* On the home card the list stays closed until a district is chosen. With
+       no JS this never runs, so the full list renders — the map is never the
+       only path to the content (BRIEF.md §7). */
+    const collapsible = panel.hasAttribute('data-collapsible');
+
+    const select_ = (slug: string | null) => {
+      for (const path of paths) {
+        path.toggleAttribute('data-selected', path.dataset.district === slug);
+      }
+      for (const entry of entries) {
+        const match = entry.dataset.entry === slug;
+        entry.hidden = slug === null ? collapsible : !match;
+        entry.toggleAttribute('data-selected', match);
+      }
+      if (prompt) prompt.hidden = slug !== null;
+      if (select.value !== (slug ?? '')) select.value = slug ?? '';
+    };
+
+    select_(null); // set the initial state once JS is running
+
+    for (const path of paths) {
+      const slug = path.dataset.district!;
+      path.addEventListener('mouseenter', () => showTooltip(path));
+      path.addEventListener('mouseleave', hideTooltip);
+      path.addEventListener('focus', () => showTooltip(path));
+      path.addEventListener('blur', hideTooltip);
+      path.addEventListener('click', () => select_(slug));
+      path.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          select_(slug);
+        }
+      });
+    }
+
+    select.addEventListener('change', () => select_(select.value || null));
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        select_(null);
+        hideTooltip();
+      }
+    });
+
+    // --- reveal: once, on first viewport entry ----------------------------
+    if (root.hasAttribute('data-reveal')) {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduced) {
+        const observer = new IntersectionObserver(
+          (records) => {
+            for (const record of records) {
+              if (record.isIntersecting) {
+                observer.disconnect();
+                root.setAttribute('data-revealing', '');
+              }
+            }
+          },
+          { threshold: 0.25 }
+        );
+        observer.observe(svg);
+      }
+    }
+  }
+</script>

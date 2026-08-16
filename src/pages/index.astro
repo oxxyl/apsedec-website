@@ -1,0 +1,434 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Logo from '../components/Logo.astro';
+import ImpactCounters from '../components/ImpactCounters.astro';
+import DistrictMap from '../components/DistrictMap.astro';
+import PartnerBar from '../components/PartnerBar.astro';
+import Placeholder from '../components/Placeholder.astro';
+import { SITE, OFFICES, CONTACT } from '../config';
+
+/* Featured current projects, seeded from APSEDEC PROFILE 2026.pdf. */
+const featured = (await getCollection('projects'))
+  .filter((p) => p.data.featured)
+  .sort((a, b) => b.data.period.start.localeCompare(a.data.period.start));
+
+const period = (p: { start: string; end?: string }) => {
+  const fmt = (s: string) => {
+    const [y, m] = s.split('-');
+    const month = new Date(Number(y), Number(m ?? 1) - 1)
+      .toLocaleString('en-GB', { month: 'short' });
+    return m ? `${month} ${y}` : y;
+  };
+  return p.end ? `${fmt(p.start)} – ${fmt(p.end)}` : `From ${fmt(p.start)}`;
+};
+---
+
+{/* Header sits on the pale ground on every page, so the colour emblem is
+    usable throughout (client decision, 15 Aug 2026). The green hero begins
+    below the header bar rather than running up behind it. */}
+<BaseLayout title={SITE.name}>
+  {/* JSON-LD, homepage only (BRIEF.md §10). Every value is verified. */}
+  <script
+    slot="head"
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'NGO',
+      name: SITE.legalName,
+      alternateName: SITE.name,
+      url: SITE.url,
+      logo: `${SITE.url}/icons/icon-180.png`,
+      description: SITE.description,
+      foundingDate: '1999-06',
+      slogan: SITE.tagline,
+      email: CONTACT.email,
+      telephone: CONTACT.phones.map((p) => `+256${p.replace(/^0/, '')}`),
+      areaServed: { '@type': 'Country', name: 'Uganda' },
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Awich Road (opposite Kitgum District Post Office)',
+        postOfficeBoxNumber: 'P.O. Box 374',
+        addressLocality: 'Kitgum',
+        addressCountry: 'UG',
+      },
+      identifier: {
+        '@type': 'PropertyValue',
+        name: 'Company registration number',
+        value: SITE.registrationNo,
+      },
+    })}
+  />
+  {/* --- Hero: quiet, spare, green-led (BRIEF.md §5) --------------------- */}
+  <section class="hero on-brand">
+    <div class="container hero__inner">
+      <p class="label hero__eyebrow">
+        <span class="hero__eyebrow-key">Offices</span>{' '}
+        {OFFICES.map((o) => o.town).join(' · ')}
+      </p>
+      <h1 class="hero__headline">
+        A centre of business excellence for Uganda's private sector.
+      </h1>
+      <p class="hero__tagline">{SITE.tagline}</p>
+      <a class="btn btn--paper hero__cta" href="/what-we-do/">What we do</a>
+    </div>
+  </section>
+
+  {/*
+    Full-bleed documentary photograph. Treated like a field report: caption
+    below the frame, no gloss, no overlay text. The map card straddles its
+    lower edge, exactly as it previously straddled the green hero.
+  */}
+  <figure class="heroshot on-brand">
+    <div class="heroshot__frame">
+      <Placeholder
+        label="HERO PHOTOGRAPH — full-bleed, documentary"
+        note="Landscape, minimum 2400px wide. Field, training or savings-group scene. Supplied as JPG/PNG; converted to AVIF/WebP at build."
+      />
+    </div>
+    <figcaption class="heroshot__caption mono">
+      <Placeholder label="PHOTO CAPTION AND LOCATION" inline />
+    </figcaption>
+  </figure>
+
+  {/* --- The signature element, straddling the green/paper boundary ------ */}
+  <div class="container">
+    <figure class="mapcard">
+      <figcaption class="mapcard__head">
+        <span class="mono">Fig. 1</span>
+        <span class="mono">Districts of operation</span>
+      </figcaption>
+      <div class="mapcard__body">
+        <DistrictMap variant="card" />
+      </div>
+      <figcaption class="mapcard__foot mono">
+        Boundaries: OCHA Uganda COD-AB, admin level 2 (135 districts, 2020).
+        Select a district to list its projects.
+      </figcaption>
+    </figure>
+  </div>
+
+  {/* --- Our Reach: count-up ledger strip -------------------------------- */}
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 01</span>
+        <span>Our reach</span>
+      </div>
+
+      <div>
+        <h2>Twenty-five years of continuous operations</h2>
+        <p class="section__lede">
+          APSEDEC has delivered enterprise development, microfinance,
+          agribusiness, financial inclusion and gender-transformative
+          programming since 1999.
+        </p>
+
+        <ImpactCounters />
+      </div>
+    </div>
+  </section>
+
+  {/* --- Current projects ------------------------------------------------ */}
+  <section class="section section--sunk">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 02</span>
+        <span>Current work</span>
+      </div>
+
+      <div>
+        <h2>Current projects</h2>
+        <p class="section__lede">
+          Active engagements across the Acholi, Lango and Busoga sub-regions.
+        </p>
+
+        <div class="ledger projects">
+          {
+            featured.map((project) => (
+              <article class="ledger__row projects__row">
+                <div class="projects__meta">
+                  <span class="mono projects__period">
+                    {period(project.data.period)}
+                  </span>
+                  <span class="mono projects__donor">
+                    {project.data.donor.join(' · ')}
+                  </span>
+                </div>
+                <div class="projects__main">
+                  <h3 class="projects__title">
+                    <a href={`/projects/${project.id}/`}>{project.data.title}</a>
+                  </h3>
+                  <p class="projects__summary">{project.data.summary}</p>
+                </div>
+                <span class="projects__reach num">{project.data.reach}</span>
+              </article>
+            ))
+          }
+        </div>
+
+        <p class="section__note">
+          <a href="/projects/">All projects, 1999 to today →</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {/* --- Partners --------------------------------------------------------- */}
+  <section class="section section--tight">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 03</span>
+        <span>Partners</span>
+      </div>
+
+      <div>
+        <h2 class="partners__title">Partners</h2>
+        <PartnerBar />
+      </div>
+    </div>
+  </section>
+
+  {/* --- Donate band ----------------------------------------------------- */}
+  <section class="donate-band on-brand">
+    <div class="container donate-band__inner">
+      <div>
+        <Logo variant="white" size="md" />
+        <h2 class="donate-band__title">Support women-led enterprise in Uganda</h2>
+        <p class="donate-band__copy">
+          Donations are received by mobile money, bank transfer and card.
+        </p>
+      </div>
+      <a class="btn btn--paper" href="/donate/">Donate to APSEDEC</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* --- Hero -------------------------------------------------------------- */
+  .hero {
+    background: var(--green-900);
+    padding-block: var(--space-2xl);
+    border-bottom: var(--hairline);
+  }
+
+  .hero__inner {
+    max-width: 54rem;
+  }
+
+  .hero__eyebrow {
+    color: var(--text-on-brand-muted);
+    margin-bottom: var(--space-m);
+    max-width: 52ch;
+    line-height: 1.5;
+  }
+
+  .hero__eyebrow-key {
+    color: #ffffff;
+    border-bottom: 1px solid var(--rule-on-green);
+    padding-bottom: 0.1em;
+    margin-right: 0.6em;
+  }
+
+  /* --- Full-bleed hero photograph ---------------------------------------- */
+  .heroshot {
+    margin: 0;
+    background: var(--green-900); /* the green runs on behind the frame */
+    /* Deep bottom padding: the map card is pulled up into this space. */
+    padding-bottom: var(--space-3xl);
+  }
+
+  .heroshot__frame {
+    display: grid;
+    place-items: center;
+    padding: var(--space-l) var(--gutter);
+    min-height: 14rem;
+    border-top: var(--hairline);
+    border-bottom: var(--hairline);
+  }
+
+  @media (min-width: 48rem) {
+    .heroshot__frame {
+      min-height: 22rem;
+    }
+  }
+
+  .heroshot__caption {
+    padding: var(--space-2xs) var(--gutter) 0;
+    font-size: var(--step--2);
+    color: var(--text-on-brand-muted);
+    max-width: var(--container);
+    margin-inline: auto;
+  }
+
+  .hero__headline {
+    max-width: 20ch;
+    margin-bottom: var(--space-m);
+  }
+
+  .hero__tagline {
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+    color: var(--green-200);
+    max-width: 46ch;
+    margin-bottom: var(--space-l);
+  }
+
+  .hero__cta {
+    margin-top: var(--space-2xs);
+  }
+
+  /* --- Map card: breaks the green/paper boundary ------------------------- */
+  .mapcard {
+    position: relative;
+    z-index: 2;
+    margin: 0;
+    margin-top: -6rem;
+    background: var(--paper); /* same light green as the page ground */
+    border: var(--hairline);
+  }
+
+  @media (min-width: 48rem) {
+    .mapcard {
+      margin-top: -8rem;
+    }
+  }
+
+  .mapcard__head {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding: var(--space-2xs) var(--space-s);
+    border-bottom: var(--hairline);
+    font-size: var(--step--2);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--navy);
+  }
+
+  .mapcard__body {
+    padding: var(--space-m) var(--space-s);
+  }
+
+  @media (min-width: 48rem) {
+    .mapcard__body {
+      padding: var(--space-l);
+    }
+  }
+
+  .mapcard__foot {
+    padding: var(--space-2xs) var(--space-s);
+    border-top: var(--hairline-faint);
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  /* --- Sections ----------------------------------------------------------- */
+  .section--sunk {
+    background: var(--paper-sunk);
+    border-top: var(--hairline-faint);
+  }
+
+  .section__lede {
+    color: var(--text-muted);
+    margin-top: var(--space-2xs);
+    margin-bottom: var(--space-l);
+  }
+
+  .section__note {
+    font-size: var(--step--1);
+  }
+
+  /* --- Project ledger rows ------------------------------------------------ */
+  .projects__row {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-2xs);
+  }
+
+  @media (min-width: 48rem) {
+    .projects__row {
+      grid-template-columns: 11rem minmax(0, 1fr) minmax(0, 11rem);
+      align-items: start;
+    }
+  }
+
+  .projects__meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+  }
+
+  .projects__period,
+  .projects__donor {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .projects__title {
+    font-size: var(--step-1);
+    margin-bottom: var(--space-3xs);
+  }
+
+  .projects__title a {
+    text-decoration: none;
+    color: var(--heading);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .projects__title a:hover {
+    color: var(--gold-deep);
+    border-bottom-color: var(--navy);
+  }
+
+  .projects__summary {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    max-width: 60ch;
+  }
+
+  .projects__reach {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 500;
+    color: var(--navy);
+  }
+
+  @media (min-width: 48rem) {
+    .projects__reach {
+      text-align: right;
+    }
+  }
+
+  .partners__title {
+    font-size: var(--step-2);
+    margin-bottom: var(--space-l);
+  }
+
+  /* --- Donate band ------------------------------------------------------- */
+  .donate-band {
+    background: var(--green-700);
+    border-top: var(--hairline);
+    padding-block: var(--space-2xl);
+  }
+
+  .donate-band__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-l);
+  }
+
+  .donate-band__title {
+    font-size: var(--step-2);
+    margin-top: var(--space-m);
+    margin-bottom: var(--space-2xs);
+    max-width: 20ch;
+  }
+
+  .donate-band__copy {
+    color: var(--green-200);
+    font-size: var(--step--1);
+  }
+</style>

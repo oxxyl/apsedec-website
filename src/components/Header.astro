@@ -1,0 +1,231 @@
+---
+import Logo from './Logo.astro';
+import { NAV } from '../config';
+
+interface Props {
+  /** Home sits over the green hero panel: transparent header, white logo. */
+  onBrand?: boolean;
+}
+
+const { onBrand = false } = Astro.props;
+const path = Astro.url.pathname;
+---
+
+<header class:list={['site-header', onBrand && 'site-header--brand on-brand']}>
+  <div class="container site-header__inner">
+    <a href="/" class="site-header__logo" aria-label="APSEDEC — home">
+      <Logo variant={onBrand ? 'white' : 'primary'} />
+    </a>
+
+    <button
+      class="nav-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="site-nav"
+    >
+      <span class="nav-toggle__label">Menu</span>
+    </button>
+
+    <nav id="site-nav" class="site-nav" aria-label="Primary">
+      <ul class="site-nav__list">
+        {
+          NAV.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class="site-nav__link"
+                aria-current={path === item.href ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+        <li class="site-nav__cta">
+          <a href="/donate/" class:list={['btn', onBrand ? 'btn--paper' : 'btn--green']}>
+            Donate
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    background: var(--paper);
+    border-bottom: var(--hairline);
+    position: relative;
+    z-index: 20;
+  }
+
+  /* Over the green hero: no ground, no rule — the panel is the ground. */
+  .site-header--brand {
+    background: transparent;
+    border-bottom: 0;
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-m);
+    min-height: 4.5rem;
+    padding-block: var(--space-2xs);
+  }
+
+  .site-header__logo {
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .site-header__logo:hover {
+    background: transparent;
+  }
+
+  /* --- Nav --------------------------------------------------------------- */
+  .site-nav__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: clamp(0.6rem, 0.1rem + 0.9vw, 1.35rem);
+  }
+
+  .site-nav__link {
+    font-family: var(--font-body);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    color: var(--ink);
+    padding-block: 0.35em;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+
+  .site-nav__link:hover {
+    background: transparent;
+    color: var(--gold-deep);
+    border-bottom-color: var(--navy);
+  }
+
+  .site-nav__link[aria-current='page'] {
+    border-bottom-color: var(--navy);
+  }
+
+  .site-header--brand .site-nav__link {
+    color: #ffffff;
+  }
+
+  .site-header--brand .site-nav__link:hover,
+  .site-header--brand .site-nav__link[aria-current='page'] {
+    color: var(--gold);
+    border-bottom-color: rgb(255 255 255 / 65%);
+  }
+
+  .site-nav__cta .btn {
+    padding: 0.6em 1.1em;
+    font-size: var(--step--1);
+  }
+
+  /* --- Mobile ------------------------------------------------------------ */
+  .nav-toggle {
+    display: none;
+    background: transparent;
+    border: var(--hairline);
+    color: inherit;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    padding: 0.5em 0.9em;
+    min-height: 44px; /* touch target */
+    cursor: pointer;
+  }
+
+  .site-header--brand .nav-toggle {
+    border-color: var(--rule-on-green);
+    color: #ffffff;
+  }
+
+  @media (max-width: 61.999rem) {
+    .nav-toggle {
+      display: block;
+    }
+
+    .site-nav {
+      display: none;
+      position: absolute;
+      inset-inline: 0;
+      top: 100%;
+      background: var(--green-900);
+      border-block: 1px solid var(--navy);
+      padding: var(--space-s) var(--gutter) var(--space-m);
+    }
+
+    .site-nav[data-open] {
+      display: block;
+    }
+
+    .site-nav__list {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    .site-nav__list li {
+      border-bottom: 1px solid var(--rule-on-green);
+    }
+
+    .site-nav__link {
+      display: block;
+      color: #ffffff;
+      font-size: var(--step-0);
+      padding-block: 0.75em;
+      border-bottom: 0;
+    }
+
+    .site-nav__link:hover,
+    .site-nav__link[aria-current='page'] {
+      color: var(--gold);
+    }
+
+    .site-nav__cta {
+      border-bottom: 0 !important;
+      padding-top: var(--space-s);
+    }
+
+    .site-nav__cta .btn {
+      width: 100%;
+      justify-content: center;
+      background: var(--paper);
+      color: var(--green-700);
+      font-size: var(--step-0);
+    }
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
+  const nav = document.querySelector<HTMLElement>('#site-nav');
+
+  if (toggle && nav) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      nav.toggleAttribute('data-open', open);
+    };
+
+    toggle.addEventListener('click', () => {
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+  }
+</script>

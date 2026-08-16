@@ -1,0 +1,334 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Logo from '../../components/Logo.astro';
+import { CONTACT, SITE } from '../../config';
+
+/**
+ * Donation receipt (BRIEF.md §8.2).
+ *
+ * Reads status, tx_ref and transaction_id from the query string client-side
+ * and renders one of three states. Noindex.
+ *
+ * HONESTY CONSTRAINT: what this page shows is presentational only — it
+ * reflects what the payment provider put in the URL. It never claims to have
+ * verified anything. Real verification happens in the Flutterwave dashboard,
+ * and the page says so.
+ */
+---
+
+<BaseLayout
+  title="Thank you"
+  description="Donation receipt."
+  noindex
+>
+  {/*
+    Decide the state BEFORE first paint. Doing it in the body script meant the
+    generic panel rendered, then swapped — 0.278 of layout shift on a page
+    whose whole job is to look trustworthy.
+  */}
+  <script slot="head" is:inline>
+    (function () {
+      var s = (new URLSearchParams(location.search).get('status') || '').toLowerCase();
+      window.__receipt =
+        s === 'successful' || s === 'completed'
+          ? 'success'
+          : s === 'cancelled' || s === 'failed' || s === 'error'
+            ? 'failed'
+            : 'plain';
+      document.documentElement.setAttribute('data-receipt', window.__receipt);
+    })();
+  </script>
+
+  <section class="section ty">
+    <div class="container">
+      {/*
+        One h1 for the page, worded by state. Each state used to carry its own
+        h1, which put three in the markup — one visible, three all the same.
+      */}
+      <h1 class="ty__title ty__title--page" data-title>Thank you</h1>
+      <script is:inline>
+        (function () {
+          var h = document.currentScript.previousElementSibling;
+          h.textContent = {
+            success: 'Donation received — thank you',
+            failed: 'That payment did not complete',
+            plain: 'Thank you',
+          }[window.__receipt || 'plain'];
+        })();
+      </script>
+
+      {/* --- Success: the receipt ------------------------------------- */}
+      <article class="ty__receipt" data-state="success">
+        <header class="ty__letterhead">
+          <Logo variant="white" size="md" />
+          <p class="mono ty__doc">Donation receipt</p>
+        </header>
+
+        <div class="ty__body">
+          <p class="ty__lede">
+            Your support goes to APSEDEC's work with savings groups, women's
+            enterprises and smallholder farmers across Uganda.
+          </p>
+
+          <dl class="ledger ty__meta">
+            <div class="ledger__row ty__row">
+              <dt class="mono ty__key">Receipt reference</dt>
+              <dd class="ty__value mono num" data-field="tx_ref">—</dd>
+            </div>
+            <div class="ledger__row ty__row">
+              <dt class="mono ty__key">Transaction ID</dt>
+              <dd class="ty__value mono num" data-field="transaction_id">—</dd>
+            </div>
+            <div class="ledger__row ty__row">
+              <dt class="mono ty__key">Date</dt>
+              <dd class="ty__value mono" data-field="date">—</dd>
+            </div>
+            <div class="ledger__row ty__row">
+              <dt class="mono ty__key">Received by</dt>
+              <dd class="ty__value">
+                {SITE.legalName}<br />
+                <span class="mono ty__reg">Registration No. {SITE.registrationNo}</span>
+              </dd>
+            </div>
+          </dl>
+
+          <p class="ty__note">
+            An email receipt follows from the payment provider. This page shows
+            what the provider returned in your browser — it is a record of your
+            payment, not an independent confirmation. APSEDEC verifies every
+            transaction in the provider's dashboard.
+          </p>
+
+          <div class="ty__actions">
+            <button type="button" class="btn btn--green" data-print>Print this receipt</button>
+            <a class="ty__link" href="/">Back to the home page</a>
+          </div>
+        </div>
+      </article>
+
+      {/* --- Cancelled or failed --------------------------------------- */}
+      <article class="ty__panel" data-state="failed">
+        <p class="ty__lede">
+          Nothing has been charged. If you meant to donate, you can try again —
+          or use bank transfer or mobile money instead.
+        </p>
+        <div class="ty__actions">
+          <a class="btn btn--green" href="/donate/">Try again</a>
+          <a class="ty__link" href="/donate/#direct">Bank and mobile money details</a>
+        </div>
+        <p class="ty__note">
+          If you think you were charged, contact APSEDEC on{' '}
+          <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a> with the date
+          and time, and it will be checked against the payment record.
+        </p>
+      </article>
+
+      {/* --- Reached directly ------------------------------------------ */}
+      <article class="ty__panel" data-state="plain">
+        <p class="ty__lede">
+          If you have just donated, your receipt will arrive by email from the
+          payment provider.
+        </p>
+        <div class="ty__actions">
+          <a class="btn btn--green" href="/donate/">Go to the donate page</a>
+          <a class="ty__link" href="/projects/">See the work</a>
+        </div>
+      </article>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .ty {
+    min-height: 50vh;
+  }
+
+  /* --- Receipt card: APSEDEC letterhead ---------------------------------- */
+  .ty__receipt {
+    border: var(--hairline);
+    background: var(--paper-raised);
+    max-width: 42rem;
+  }
+
+  /* State is chosen before first paint by the inline head script, so the
+     right panel is the only one ever painted — no swap, no layout shift.
+     With no JS at all, the generic thank-you shows. */
+  .ty__receipt,
+  .ty__panel {
+    display: none;
+  }
+
+  :global(html:not([data-receipt])) .ty__panel[data-state='plain'],
+  :global(html[data-receipt='plain']) .ty__panel[data-state='plain'],
+  :global(html[data-receipt='failed']) .ty__panel[data-state='failed'],
+  :global(html[data-receipt='success']) .ty__receipt {
+    display: block;
+  }
+
+  .ty__letterhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-m);
+    flex-wrap: wrap;
+    padding: var(--space-m);
+    background: var(--green-900);
+    border-bottom: var(--hairline);
+  }
+
+  .ty__doc {
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--text-on-brand-muted);
+  }
+
+  .ty__body {
+    padding: var(--space-m);
+  }
+
+  .ty__title {
+    font-size: var(--step-2);
+  }
+
+  .ty__title--page {
+    font-size: var(--step-3);
+    margin-bottom: var(--space-m);
+    max-width: 22ch;
+  }
+
+  .ty__lede {
+    color: var(--text-muted);
+    margin-top: var(--space-2xs);
+    max-width: 52ch;
+  }
+
+  .ty__meta {
+    margin-block: var(--space-l) var(--space-m);
+  }
+
+  .ty__row {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 34rem) {
+    .ty__row {
+      grid-template-columns: 11rem minmax(0, 1fr);
+      column-gap: var(--space-m);
+      align-items: baseline;
+    }
+  }
+
+  /* A receipt gets read carefully, often on a phone — nothing here drops to
+     the --step--2 label size used elsewhere. */
+  .ty__key {
+    font-size: var(--step--1);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--text-muted);
+  }
+
+  .ty__value {
+    margin: 0;
+    font-size: var(--step-0);
+    word-break: break-word;
+  }
+
+  .ty__reg {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .ty__note {
+    margin-top: var(--space-m);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    max-width: 58ch;
+  }
+
+  .ty__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-s);
+    margin-top: var(--space-l);
+  }
+
+  .ty__link {
+    font-size: var(--step--1);
+  }
+
+  .ty__panel {
+    max-width: 42rem;
+  }
+
+  /* --- Print: the receipt alone -------------------------------------------- */
+  @media print {
+    :global(.site-header),
+    :global(.site-footer),
+    :global(.skip-link),
+    .ty__actions {
+      display: none !important;
+    }
+
+    .ty__receipt {
+      border: 1px solid #000;
+      max-width: none;
+    }
+
+    .ty__letterhead {
+      background: #fff !important;
+      border-bottom: 1px solid #000;
+    }
+
+    .ty__doc {
+      color: #000 !important;
+    }
+
+    .ty__note {
+      color: #000;
+    }
+  }
+</style>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const status = (params.get('status') ?? '').toLowerCase();
+
+  /* Which panel shows is already decided by the inline head script, via
+     data-receipt on <html>. This only fills in the receipt's values. */
+  const show = (which: 'success' | 'failed' | 'plain') => {
+    document.documentElement.setAttribute('data-receipt', which);
+  };
+
+  if (status === 'successful' || status === 'completed') {
+    /* Values come from the provider's redirect. Rendered as received —
+       the page makes no claim to have verified them. */
+    const set = (field: string, value: string | null) => {
+      const el = document.querySelector<HTMLElement>(`[data-field="${field}"]`);
+      if (el) el.textContent = value && value.trim() ? value : 'Not supplied';
+    };
+
+    set('tx_ref', params.get('tx_ref'));
+    set('transaction_id', params.get('transaction_id'));
+    set(
+      'date',
+      new Date().toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    );
+
+    show('success');
+    document.title = `Receipt ${params.get('tx_ref') ?? ''} — APSEDEC`.trim();
+  } else if (status === 'cancelled' || status === 'failed' || status === 'error') {
+    show('failed');
+  } else {
+    show('plain');
+  }
+
+  document
+    .querySelector<HTMLButtonElement>('[data-print]')
+    ?.addEventListener('click', () => window.print());
+</script>

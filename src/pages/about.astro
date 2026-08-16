@@ -1,0 +1,369 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Placeholder from '../components/Placeholder.astro';
+import { SITE } from '../config';
+
+/* Every fact on this page comes from APSEDEC PROFILE 2026.pdf. Anything the
+   profile does not state renders as a placeholder (BRIEF.md §13). */
+
+const values = [
+  'Mutual Respect',
+  'Accountability',
+  'Team Work',
+  'Professionalism',
+  'God Fearing',
+];
+
+const milestones = [
+  {
+    year: '1999',
+    title: 'Established',
+    body: 'Founded in June 1999 as a project under the Government of Uganda and UNDP Country Cooperation Framework (CCF I), as the Kitgum Private Sector Promotion Centre.',
+  },
+  {
+    year: '2004',
+    title: 'Registered',
+    body: 'Registered in June 2004 by the Registrar of Companies as a Company Limited by Guarantee, Registration No. 62106.',
+  },
+  {
+    year: '2026',
+    title: 'Today',
+    body: 'A national capacity-building and business-development organisation with more than 25 years of continuous operations, headquartered in Kitgum with ten further offices.',
+  },
+];
+
+/* Read from the team collection so adding a person is one Markdown file —
+   the same workflow as every other kind of content on this site. */
+const leadership = (await getCollection('team')).sort(
+  (a, b) =>
+    Number(b.data.board) - Number(a.data.board) ||
+    a.data.order - b.data.order ||
+    a.data.name.localeCompare(b.data.name)
+);
+
+const structure = [
+  'Finance & Administration Manager',
+  'Microfinance Specialist',
+  'Business Development Service Manager',
+  'Monitoring & Evaluation Specialist',
+  'Agricultural Extension Team Leader',
+];
+---
+
+<BaseLayout
+  title="About"
+  description="APSEDEC is a national capacity-building and business development organisation established in 1999, headquartered in Kitgum, Uganda."
+>
+  <PageHeader
+    title="Twenty-five years of building enterprise in Uganda"
+    eyebrow="§ About"
+    lede="Acholi Private Sector Development Company Limited — formerly the Kitgum Private Sector Promotion Centre — has delivered enterprise development, microfinance, agribusiness and gender-transformative programming since 1999."
+  />
+
+  {/* --- History --------------------------------------------------------- */}
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 01</span>
+        <span>History</span>
+      </div>
+      <div>
+        <h2>How APSEDEC came about</h2>
+        <div class="ledger about__timeline">
+          {
+            milestones.map((m) => (
+              <div class="ledger__row about__milestone">
+                <span class="about__year num">{m.year}</span>
+                <div>
+                  <h3 class="about__milestone-title">{m.title}</h3>
+                  <p>{m.body}</p>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+        <p class="about__note">
+          <Placeholder label="FULLER HISTORY AND TIMELINE DETAIL" inline /> — the
+          2026 profile records the founding and registration only.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {/* --- Vision & mission ------------------------------------------------ */}
+  <section class="section on-brand about__vision">
+    <div class="container spread">
+      <div class="spread__margin about__vision-margin">
+        <span>§ 02</span>
+        <span>Purpose</span>
+      </div>
+      <div>
+        <h2 class="visually-hidden">Vision and mission</h2>
+        <p class="label about__label">Vision</p>
+        <p class="about__vision-text">{SITE.vision}</p>
+
+        <p class="label about__label about__label--spaced">Mission</p>
+        <p class="about__mission-text">{SITE.mission}</p>
+      </div>
+    </div>
+  </section>
+
+  {/* --- Core values ------------------------------------------------------ */}
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 03</span>
+        <span>Values</span>
+      </div>
+      <div>
+        <h2>Core values</h2>
+        <ol class="ledger about__values">
+          {
+            values.map((value, i) => (
+              <li class="ledger__row about__value">
+                <span class="mono about__value-index">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span class="about__value-name">{value}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  {/* --- Governance ------------------------------------------------------- */}
+  <section class="section section--sunk">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 04</span>
+        <span>Governance</span>
+      </div>
+      <div>
+        <h2>Governance and leadership</h2>
+        <p class="about__lede">
+          APSEDEC is governed by a Board of Directors democratically elected
+          from a membership of 26 private-sector, public-sector and
+          civil-society organisations, and is led day to day by the Chief
+          Executive Officer.
+        </p>
+
+        <div class="ledger about__people">
+          {
+            leadership.map((person) => (
+              <div class="ledger__row about__person">
+                <span class="mono about__person-role">{person.data.role}</span>
+                <span class="about__person-name">{person.data.name}</span>
+              </div>
+            ))
+          }
+        </div>
+
+        <h3 class="about__subhead">Management team</h3>
+        <ul class="about__structure">
+          {structure.map((role) => <li class="mono">{role}</li>)}
+        </ul>
+        <p class="about__note">
+          Supported by agribusiness trainers, gender practitioners, M&amp;E
+          officers and a network of accredited Community-Based Trainers and
+          Facilitators.
+        </p>
+        <p class="about__note">
+          <Placeholder label="NAMES AND PHOTOGRAPHS OF THE FULL BOARD AND MANAGEMENT TEAM" inline />
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {/* --- Policies --------------------------------------------------------- */}
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 05</span>
+        <span>Policies</span>
+      </div>
+      <div>
+        <h2>Policies and safeguarding</h2>
+        <p>
+          APSEDEC's governance documents will be published in full on the{' '}
+          <a href="/resources/">resources page</a> once supplied.
+        </p>
+        <Placeholder
+          label="SAFEGUARDING POLICY, CODE OF CONDUCT AND RELATED GOVERNANCE DOCUMENTS"
+          note="Needed as PDFs with title, year and category for each."
+        />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about__timeline,
+  .about__values,
+  .about__people {
+    margin-block: var(--space-l) var(--space-m);
+  }
+
+  .about__values {
+    list-style: none;
+    padding: 0;
+  }
+
+  .about__milestone {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 40rem) {
+    .about__milestone {
+      grid-template-columns: 6rem minmax(0, 1fr);
+      column-gap: var(--space-l);
+    }
+  }
+
+  .about__year {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--step-2);
+    line-height: 1;
+    color: var(--gold-deep);
+  }
+
+  .about__milestone-title {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: var(--space-3xs);
+  }
+
+  /* --- Vision band -------------------------------------------------------- */
+  .about__vision {
+    background: var(--green-800);
+    border-block: var(--hairline);
+  }
+
+  .about__vision-margin {
+    color: var(--text-on-brand-muted);
+  }
+
+  @media (min-width: 62rem) {
+    .about__vision-margin {
+      border-right-color: var(--rule-on-green);
+    }
+  }
+
+  .about__label {
+    color: var(--text-on-brand-muted);
+  }
+
+  .about__label--spaced {
+    margin-top: var(--space-xl);
+  }
+
+  .about__vision-text {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--step-2);
+    line-height: var(--leading-snug);
+    color: #ffffff;
+    margin-top: var(--space-2xs);
+    max-width: 26ch;
+  }
+
+  .about__mission-text {
+    margin-top: var(--space-2xs);
+    color: var(--green-200);
+    max-width: 62ch;
+  }
+
+  /* --- Values ------------------------------------------------------------- */
+  .about__value {
+    grid-template-columns: 3rem minmax(0, 1fr);
+    align-items: baseline;
+  }
+
+  .about__value-index {
+    color: var(--text-muted);
+    font-size: var(--step--2);
+  }
+
+  .about__value-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--step-1);
+    color: var(--green-900);
+  }
+
+  /* --- Governance --------------------------------------------------------- */
+  .about__lede {
+    color: var(--text-muted);
+    margin-top: var(--space-2xs);
+  }
+
+  .about__person {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 40rem) {
+    .about__person {
+      grid-template-columns: 14rem minmax(0, 1fr);
+      column-gap: var(--space-l);
+      align-items: baseline;
+    }
+  }
+
+  .about__person-role {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+  }
+
+  .about__person-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--step-1);
+    color: var(--green-900);
+  }
+
+  .about__subhead {
+    font-size: var(--step-0);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-top: var(--space-l);
+    margin-bottom: var(--space-2xs);
+  }
+
+  .about__structure {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--space-3xs);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .about__structure li::before {
+    content: '— ';
+  }
+
+  .about__note {
+    margin-top: var(--space-m);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    max-width: none;
+  }
+
+  .section--sunk {
+    background: var(--paper-sunk);
+    border-block: var(--hairline-faint);
+  }
+</style>

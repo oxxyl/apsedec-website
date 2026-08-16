@@ -1,0 +1,529 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Placeholder from '../components/Placeholder.astro';
+import { CONTACT, SITE, DONATIONS_LIVE, FLW_PUBLIC_KEY } from '../config';
+
+/**
+ * Donation page (BRIEF.md §8.1).
+ *
+ * Flutterwave Inline checkout with the PUBLIC key only — no card details ever
+ * touch this site, and there is no server. checkout.js is loaded on this page
+ * only, and only when donations are live.
+ *
+ * Until the merchant account exists, DONATIONS_LIVE is false: the online
+ * section ships in a clearly-styled "coming soon" state and the direct
+ * transfer section stays live.
+ */
+const live = DONATIONS_LIVE && FLW_PUBLIC_KEY.length > 0;
+
+const presets = {
+  UGX: [20000, 50000, 100000, 250000],
+  USD: [10, 25, 50, 100],
+};
+
+const fmt = (currency: 'UGX' | 'USD', amount: number) =>
+  currency === 'UGX'
+    ? `UGX ${amount.toLocaleString('en-GB')}`
+    : `$${amount.toLocaleString('en-GB')}`;
+---
+
+<BaseLayout
+  title="Donate"
+  description="Support APSEDEC's work with savings groups, women's enterprises and smallholder farmers across Uganda."
+>
+  <PageHeader
+    title="Support this work"
+    eyebrow="§ Donate"
+    lede="APSEDEC has formed and strengthened more than 8,000 savings groups and supported over 70,000 farmers and women since 1999."
+  />
+
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 01</span>
+        <span>{live ? 'Give online' : 'Coming soon'}</span>
+      </div>
+
+      <div>
+        {
+          !live && (
+            <div class="dn__soon">
+              <p class="mono dn__soon-tag">Not yet open</p>
+              <h2 class="dn__soon-title">Online donations are coming</h2>
+              <p class="dn__soon-body">
+                APSEDEC is completing merchant onboarding. Once that is done,
+                this page will accept MTN Mobile Money, Airtel Money and
+                international cards in Ugandan shillings and US dollars, through
+                the payment provider's own secure checkout. Card details will
+                never touch this website.
+              </p>
+              <p class="dn__soon-body">
+                Bank transfer and mobile money are available today — see below.
+              </p>
+            </div>
+          )
+        }
+
+        <form class="dn__form" data-donate aria-describedby={live ? undefined : 'dn-disabled'}>
+          {!live && <p id="dn-disabled" class="visually-hidden">This form is not yet active.</p>}
+
+          {/* --- Currency ---------------------------------------------- */}
+          <fieldset class="dn__fieldset">
+            <legend class="label dn__legend">Currency</legend>
+            <div class="dn__toggle" role="group">
+              {
+                (['UGX', 'USD'] as const).map((code, i) => (
+                  <label class="dn__toggle-option">
+                    <input
+                      type="radio"
+                      name="currency"
+                      value={code}
+                      checked={i === 0}
+                      disabled={!live}
+                      data-currency
+                    />
+                    <span>{code}</span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+
+          {/* --- Amount ------------------------------------------------- */}
+          <fieldset class="dn__fieldset">
+            <legend class="label dn__legend">Amount</legend>
+            {
+              (['UGX', 'USD'] as const).map((code) => (
+                <div class="dn__amounts" data-amounts={code} hidden={code !== 'UGX'}>
+                  {presets[code].map((amount, i) => (
+                    <label class="dn__amount">
+                      <input
+                        type="radio"
+                        name={`amount-${code}`}
+                        value={amount}
+                        checked={i === 1}
+                        disabled={!live}
+                        data-amount
+                      />
+                      <span>{fmt(code, amount)}</span>
+                    </label>
+                  ))}
+                </div>
+              ))
+            }
+
+            <div class="dn__custom">
+              <label class="label" for="dn-custom">Or another amount</label>
+              <input
+                id="dn-custom"
+                type="number"
+                min="1"
+                step="any"
+                inputmode="decimal"
+                placeholder="Enter an amount"
+                disabled={!live}
+                data-custom
+              />
+            </div>
+          </fieldset>
+
+          {/* --- Donor details ------------------------------------------ */}
+          <fieldset class="dn__fieldset">
+            <legend class="label dn__legend">Your details</legend>
+            <div class="dn__field">
+              <label class="label" for="dn-name">Name <span class="dn__optional">optional</span></label>
+              <input id="dn-name" type="text" autocomplete="name" disabled={!live} data-name />
+            </div>
+            <div class="dn__field">
+              <label class="label" for="dn-email">Email</label>
+              <input id="dn-email" type="email" autocomplete="email" required disabled={!live} data-email />
+              <p class="dn__help">Required by the payment provider to send your receipt.</p>
+            </div>
+          </fieldset>
+
+          <button type="submit" class="btn btn--green dn__submit" disabled={!live}>
+            {live ? 'Continue to payment' : 'Not yet available'}
+          </button>
+
+          <p class="dn__status" data-status role="status" aria-live="polite" hidden></p>
+
+          {
+            live && (
+              <p class="dn__secure mono">
+                Payment is completed on the provider's secure checkout. This site
+                never sees or stores card or mobile money details.
+              </p>
+            )
+          }
+        </form>
+
+        {
+          !live && (
+            <Placeholder
+              label="FLUTTERWAVE PUBLIC KEY AND MERCHANT ONBOARDING"
+              note="Set FLW_PUBLIC_KEY and flip DONATIONS_LIVE to true in src/config.ts. Public key only — never a secret key in this repository."
+            />
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* --- Direct transfer ---------------------------------------------------
+      id="direct" is linked from the receipt page's failed state. */}
+  <section class="section section--sunk" id="direct">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 02</span>
+        <span>Direct</span>
+      </div>
+      <div>
+        <h2>Bank transfer and mobile money</h2>
+        <p class="dn__lede">
+          For donors who prefer not to give online, or for institutional
+          transfers, APSEDEC accepts direct bank and mobile money payments.
+        </p>
+
+        <Placeholder
+          label="BANK AND MOBILE MONEY TRANSFER DETAILS"
+          note="Account name, bank, branch, account number, SWIFT code for international transfers, and the mobile money merchant code."
+        />
+
+        <p class="dn__contact">
+          To arrange a donation or discuss a partnership, contact the head
+          office: <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a> ·{' '}
+          <span class="mono">{CONTACT.phones.join(' / ')}</span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {/* --- Where it goes ------------------------------------------------------ */}
+  <section class="section">
+    <div class="container spread">
+      <div class="spread__margin">
+        <span>§ 03</span>
+        <span>Accountability</span>
+      </div>
+      <div>
+        <h2>Where donations go</h2>
+        <p>
+          APSEDEC is a company limited by guarantee, Registration No.{' '}
+          {SITE.registrationNo}, governed by a Board of Directors elected from
+          its 26 member organisations. Its programme record is published in full
+          on the <a href="/projects/">projects page</a>.
+        </p>
+        <p class="dn__note">
+          <Placeholder label="STATEMENT ON HOW DONATED FUNDS ARE ALLOCATED" inline /> — APSEDEC
+          to supply. Annual reports and financial statements will appear on the{' '}
+          <a href="/resources/">resources page</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .dn__soon {
+    border: var(--hairline);
+    background: var(--paper-raised);
+    padding: var(--space-m);
+    margin-bottom: var(--space-xl);
+    max-width: 44rem;
+  }
+
+  .dn__soon-tag {
+    font-size: var(--step--2);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--gold-deep);
+  }
+
+  .dn__soon-title {
+    font-size: var(--step-1);
+    margin-block: var(--space-3xs) var(--space-2xs);
+  }
+
+  .dn__soon-body {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .dn__soon-body + .dn__soon-body {
+    margin-top: var(--space-2xs);
+  }
+
+  /* --- Form ---------------------------------------------------------------- */
+  .dn__form {
+    max-width: 34rem;
+    margin-bottom: var(--space-l);
+  }
+
+  .dn__fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0 0 var(--space-l);
+  }
+
+  .dn__legend {
+    padding: 0;
+    margin-bottom: var(--space-2xs);
+  }
+
+  .dn__toggle {
+    display: inline-flex;
+    border: var(--hairline);
+  }
+
+  .dn__toggle-option input,
+  .dn__amount input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  .dn__toggle-option span {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-label);
+    padding: 0.6em 1.2em;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--navy);
+  }
+
+  .dn__toggle-option + .dn__toggle-option span {
+    border-left: var(--hairline);
+  }
+
+  .dn__toggle-option input:checked + span {
+    background: var(--green-600);
+    color: #ffffff;
+  }
+
+  .dn__toggle-option input:focus-visible + span,
+  .dn__amount input:focus-visible + span {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* Disabled must also drop the "checked" green fill — otherwise the muted
+     text colour lands on the green ground at 1.2:1. */
+  .dn__toggle-option input:disabled + span,
+  .dn__amount input:disabled + span,
+  .dn__toggle-option input:disabled:checked + span,
+  .dn__amount input:disabled:checked + span {
+    background: var(--paper-sunk);
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+
+  .dn__amounts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+  }
+
+  .dn__amounts[hidden] {
+    display: none;
+  }
+
+  .dn__amount span {
+    display: flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    padding: 0.6em 0.9em;
+    min-height: 44px;
+    border: var(--hairline);
+    background: var(--paper-raised);
+    color: var(--navy);
+    cursor: pointer;
+  }
+
+  .dn__amount input:checked + span {
+    background: var(--green-600);
+    color: #ffffff;
+  }
+
+  .dn__custom {
+    margin-top: var(--space-m);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    max-width: 16rem;
+  }
+
+  .dn__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+  }
+
+  .dn__field + .dn__field {
+    margin-top: var(--space-m);
+  }
+
+  .dn__form input[type='text'],
+  .dn__form input[type='email'],
+  .dn__form input[type='number'] {
+    font-family: var(--font-body);
+    font-size: var(--step-0);
+    padding: 0.6em 0.7em;
+    min-height: 44px;
+    background: var(--paper-raised);
+    border: var(--hairline);
+    color: var(--ink);
+    width: 100%;
+  }
+
+  .dn__form input:disabled {
+    background: var(--paper-sunk);
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+
+  .dn__optional {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .dn__help {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .dn__status {
+    margin-top: var(--space-s);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    padding: var(--space-2xs) var(--space-s);
+    border: var(--hairline);
+    max-width: none;
+  }
+
+  .dn__status[hidden] {
+    display: none;
+  }
+
+  .dn__secure {
+    margin-top: var(--space-s);
+    font-size: var(--step--2);
+    color: var(--text-muted);
+    max-width: 42ch;
+  }
+
+  .dn__lede,
+  .dn__note,
+  .dn__contact {
+    color: var(--text-muted);
+    margin-top: var(--space-2xs);
+    max-width: 60ch;
+  }
+
+  .dn__contact {
+    margin-top: var(--space-m);
+    font-size: var(--step--1);
+  }
+
+  .section--sunk {
+    background: var(--paper-sunk);
+    border-block: var(--hairline-faint);
+  }
+</style>
+
+{/* checkout.js loads on this page only, and only once donations are live. */}
+{live && <script is:inline src="https://checkout.flutterwave.com/v3.js"></script>}
+
+<script is:inline define:vars={{ live, publicKey: FLW_PUBLIC_KEY, siteUrl: SITE.url }}>
+  const form = document.querySelector('[data-donate]');
+
+  if (form && live) {
+    const status = form.querySelector('[data-status]');
+    const custom = form.querySelector('[data-custom]');
+
+    const currency = () =>
+      form.querySelector('[data-currency]:checked')?.value ?? 'UGX';
+
+    /* Swap the preset row when the currency changes. */
+    for (const radio of form.querySelectorAll('[data-currency]')) {
+      radio.addEventListener('change', () => {
+        for (const group of form.querySelectorAll('[data-amounts]')) {
+          group.hidden = group.dataset.amounts !== currency();
+        }
+      });
+    }
+
+    /* A custom amount clears the preset selection, and vice versa. */
+    custom.addEventListener('input', () => {
+      if (custom.value) {
+        for (const radio of form.querySelectorAll('[data-amount]:checked')) {
+          radio.checked = false;
+        }
+      }
+    });
+
+    for (const radio of form.querySelectorAll('[data-amount]')) {
+      radio.addEventListener('change', () => {
+        custom.value = '';
+      });
+    }
+
+    const show = (message, state) => {
+      status.textContent = message;
+      status.dataset.state = state;
+      status.hidden = false;
+    };
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const code = currency();
+      const preset = form.querySelector(`[name="amount-${code}"]:checked`);
+      const amount = Number(custom.value || preset?.value || 0);
+      const email = form.querySelector('[data-email]').value.trim();
+      const name = form.querySelector('[data-name]').value.trim();
+
+      if (!amount || amount <= 0) {
+        show('Please choose or enter an amount.', 'error');
+        return;
+      }
+      if (!email) {
+        show('An email address is needed so the provider can send your receipt.', 'error');
+        return;
+      }
+      if (typeof window.FlutterwaveCheckout !== 'function') {
+        show('The payment window could not load. Please try again, or use bank transfer below.', 'error');
+        return;
+      }
+
+      status.hidden = true;
+
+      const txRef = `APSEDEC-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      window.FlutterwaveCheckout({
+        public_key: publicKey,
+        tx_ref: txRef,
+        amount,
+        currency: code,
+        payment_options: 'card,mobilemoneyuganda,ussd',
+        redirect_url: `${siteUrl}/donate/thank-you/`,
+        customer: { email, name: name || undefined },
+        customizations: {
+          title: 'APSEDEC',
+          description: 'Donation to Acholi Private Sector Development Company Ltd',
+        },
+        onclose: () => {
+          show('Payment window closed. Nothing has been charged.', 'error');
+        },
+      });
+    });
+  }
+</script>

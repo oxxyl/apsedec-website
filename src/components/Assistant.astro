@@ -1,0 +1,481 @@
+---
+/**
+ * "Quick answers" — a rule-based FAQ widget (BRIEF.md §9).
+ *
+ * NOT an AI chatbot. No API calls, no keys, no external services. It matches
+ * a typed question against the faq content collection and returns those
+ * answers verbatim. It never generates text, and never presents itself as a
+ * person or an AI.
+ *
+ * Nothing loads until the panel is opened: the bank is fetched from
+ * /faq.json and the matcher is dynamically imported on first open.
+ */
+---
+
+<div class="qa" data-assistant>
+  <button
+    class="qa__launcher"
+    type="button"
+    data-launcher
+    aria-expanded="false"
+    aria-controls="qa-panel"
+  >
+    <svg class="qa__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M12 3C7.03 3 3 6.58 3 11c0 2.32 1.11 4.4 2.88 5.86L5 21l4.35-2.06c.85.2 1.74.31 2.65.31 4.97 0 9-3.58 9-8s-4.03-8-9-8Z"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linejoin="round"
+      ></path>
+      <path d="M8.5 10.5h7M8.5 13.5h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+    </svg>
+    <span class="qa__launcher-label">Quick answers</span>
+  </button>
+
+  <div
+    class="qa__panel"
+    id="qa-panel"
+    data-panel
+    hidden
+    role="dialog"
+    aria-modal="false"
+    aria-labelledby="qa-title"
+  >
+    <header class="qa__head">
+      <div>
+        <p class="qa__title mono" id="qa-title">Quick answers</p>
+        <p class="qa__sub">Answers from APSEDEC's own published information.</p>
+      </div>
+      <button class="qa__close" type="button" data-close aria-label="Close quick answers">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="18" height="18">
+          <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+        </svg>
+      </button>
+    </header>
+
+    <div class="qa__body" data-body>
+      <p class="qa__hint">Try one of these, or type a question.</p>
+      <ul class="qa__chips" data-chips></ul>
+
+      <div class="qa__results" data-results aria-live="polite" aria-atomic="false"></div>
+    </div>
+
+    <form class="qa__form" data-form>
+      <label class="visually-hidden" for="qa-input">Ask a question about APSEDEC</label>
+      <input
+        id="qa-input"
+        class="qa__input"
+        type="text"
+        name="q"
+        autocomplete="off"
+        placeholder="Ask a question…"
+        data-input
+      />
+      <button class="qa__send" type="submit">Ask</button>
+    </form>
+  </div>
+</div>
+
+<style>
+  .qa {
+    position: fixed;
+    right: var(--space-s);
+    bottom: var(--space-s);
+    z-index: 60;
+    font-family: var(--font-body);
+  }
+
+  /* --- Launcher ------------------------------------------------------------ */
+  .qa__launcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    background: var(--green-600);
+    color: #ffffff;
+    border: 2px solid var(--navy); /* navy hairline ring */
+    border-radius: 999px;
+    padding: 0.7em 1.1em 0.7em 0.85em;
+    min-height: 48px;
+    cursor: pointer;
+    font-size: var(--step--1);
+    font-weight: 700;
+    transition: background-color var(--dur-fast) var(--ease);
+  }
+
+  .qa__launcher:hover {
+    background: var(--green-700);
+  }
+
+  .qa__launcher[aria-expanded='true'] {
+    display: none;
+  }
+
+  .qa__icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 30rem) {
+    .qa__launcher-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    .qa__launcher {
+      border-radius: 50%;
+      padding: 0.8em;
+      width: 52px;
+      height: 52px;
+      justify-content: center;
+    }
+  }
+
+  /* --- Panel --------------------------------------------------------------- */
+  .qa__panel {
+    display: flex;
+    flex-direction: column;
+    width: min(23rem, calc(100vw - 2 * var(--space-s)));
+    max-height: min(32rem, calc(100dvh - 2 * var(--space-s)));
+    background: var(--paper-raised);
+    border: var(--hairline);
+  }
+
+  .qa__panel[hidden] {
+    display: none;
+  }
+
+  .qa__head {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: var(--space-2xs);
+    padding: var(--space-s);
+    background: var(--green-900);
+    border-bottom: var(--hairline);
+  }
+
+  .qa__title {
+    color: #ffffff;
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .qa__sub {
+    color: var(--text-on-brand-muted);
+    font-size: var(--step--2);
+    margin-top: 0.2em;
+    max-width: 26ch;
+  }
+
+  .qa__close {
+    background: transparent;
+    border: 1px solid var(--rule-on-green);
+    color: #ffffff;
+    padding: 0.35em;
+    cursor: pointer;
+    line-height: 0;
+    flex-shrink: 0;
+  }
+
+  .qa__close:hover {
+    background: rgb(255 255 255 / 12%);
+  }
+
+  .qa__body {
+    padding: var(--space-s);
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .qa__hint {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+    margin-bottom: var(--space-2xs);
+  }
+
+  .qa__chips {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs);
+  }
+
+  .qa__chip {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    background: transparent;
+    border: var(--hairline);
+    color: var(--navy);
+    padding: 0.4em 0.6em;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .qa__chip:hover {
+    background: var(--gold-wash);
+  }
+
+  /* --- Results -------------------------------------------------------------- */
+  .qa__results:not(:empty) {
+    margin-top: var(--space-m);
+    border-top: var(--hairline);
+    padding-top: var(--space-2xs);
+  }
+
+  .qa__answer {
+    padding-block: var(--space-2xs);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .qa__answer:last-child {
+    border-bottom: 0;
+  }
+
+  .qa__q {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: 0.3em;
+  }
+
+  .qa__a {
+    font-size: var(--step--1);
+    line-height: 1.5;
+    max-width: none;
+  }
+
+  .qa__more {
+    margin-top: var(--space-2xs);
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .qa__miss {
+    font-size: var(--step--1);
+    line-height: 1.5;
+    max-width: none;
+  }
+
+  /* --- Form ---------------------------------------------------------------- */
+  .qa__form {
+    display: flex;
+    gap: var(--space-3xs);
+    padding: var(--space-2xs);
+    border-top: var(--hairline);
+    background: var(--paper);
+  }
+
+  .qa__input {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-body);
+    font-size: var(--step--1);
+    padding: 0.55em 0.6em;
+    min-height: 44px;
+    background: var(--paper-raised);
+    border: var(--hairline);
+    color: var(--ink);
+  }
+
+  .qa__send {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: var(--step--1);
+    background: var(--green-600);
+    color: #ffffff;
+    border: var(--hairline);
+    padding: 0 0.9em;
+    min-height: 44px;
+    cursor: pointer;
+  }
+
+  .qa__send:hover {
+    background: var(--green-700);
+  }
+
+  @media print {
+    .qa {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import type { Entry, Match } from '../scripts/faq-search';
+
+  const root = document.querySelector<HTMLElement>('[data-assistant]');
+
+  if (root) {
+    const launcher = root.querySelector<HTMLButtonElement>('[data-launcher]')!;
+    const panel = root.querySelector<HTMLElement>('[data-panel]')!;
+    const closeBtn = root.querySelector<HTMLButtonElement>('[data-close]')!;
+    const form = root.querySelector<HTMLFormElement>('[data-form]')!;
+    const input = root.querySelector<HTMLInputElement>('[data-input]')!;
+    const results = root.querySelector<HTMLElement>('[data-results]')!;
+    const chips = root.querySelector<HTMLElement>('[data-chips]')!;
+
+    let bank: Entry[] | null = null;
+    let matcher: typeof import('../scripts/faq-search') | null = null;
+    let loading: Promise<void> | null = null;
+
+    /** Nothing is fetched or imported until the panel is first opened. */
+    const load = () => {
+      if (!loading) {
+        loading = (async () => {
+          const [data, mod] = await Promise.all([
+            fetch('/faq.json').then((r) => r.json()),
+            import('../scripts/faq-search'),
+          ]);
+          bank = data as Entry[];
+          matcher = mod;
+          renderChips();
+        })();
+      }
+      return loading;
+    };
+
+    const renderChips = () => {
+      if (!bank || chips.children.length) return;
+      const path = window.location.pathname;
+      // Prefer entries scoped to this page, then fill from the top of the bank.
+      const scoped = bank.filter((e) => e.page?.includes(path));
+      const rest = bank.filter((e) => !e.page?.includes(path));
+      for (const entry of [...scoped, ...rest].slice(0, 4)) {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'qa__chip';
+        button.textContent = entry.question;
+        button.addEventListener('click', () => {
+          input.value = entry.question;
+          answer(entry.question);
+        });
+        li.append(button);
+        chips.append(li);
+      }
+    };
+
+    const renderAnswers = (matches: Match[]) => {
+      results.innerHTML = '';
+
+      if (!matches.length) {
+        const p = document.createElement('p');
+        p.className = 'qa__miss';
+        p.append(
+          document.createTextNode("I don't have that one yet. You can "),
+        );
+        const contact = document.createElement('a');
+        contact.href = '/contact/';
+        contact.textContent = 'contact APSEDEC directly';
+        const resources = document.createElement('a');
+        resources.href = '/resources/';
+        resources.textContent = 'the resources page';
+        p.append(contact, document.createTextNode(', or try '), resources, document.createTextNode('.'));
+        results.append(p);
+        return;
+      }
+
+      // Answers are printed verbatim from the bank — never generated.
+      const [best, ...others] = matches;
+      const wrap = document.createElement('div');
+      wrap.className = 'qa__answer';
+      const q = document.createElement('p');
+      q.className = 'qa__q';
+      q.textContent = best.entry.question;
+      const a = document.createElement('p');
+      a.className = 'qa__a';
+      a.textContent = best.entry.answer;
+      wrap.append(q, a);
+      results.append(wrap);
+
+      if (others.length) {
+        const more = document.createElement('p');
+        more.className = 'qa__more';
+        more.textContent = 'Related:';
+        results.append(more);
+        for (const match of others) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'qa__chip';
+          button.textContent = match.entry.question;
+          button.addEventListener('click', () => {
+            input.value = match.entry.question;
+            answer(match.entry.question);
+          });
+          results.append(button);
+        }
+      }
+    };
+
+    const answer = async (query: string) => {
+      await load();
+      if (!bank || !matcher) return;
+      renderAnswers(matcher.search(bank, query, window.location.pathname));
+      results.scrollIntoView({ block: 'nearest' });
+    };
+
+    // --- open / close -----------------------------------------------------
+    const focusable = () =>
+      Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'button, input, a[href], [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => el.offsetParent !== null);
+
+    const open = async () => {
+      panel.hidden = false;
+      launcher.setAttribute('aria-expanded', 'true');
+      await load();
+      input.focus();
+    };
+
+    const close = () => {
+      panel.hidden = true;
+      launcher.setAttribute('aria-expanded', 'false');
+      launcher.focus();
+    };
+
+    launcher.addEventListener('click', open);
+    closeBtn.addEventListener('click', close);
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const query = input.value.trim();
+      if (query) answer(query);
+    });
+
+    // ESC closes; Tab is trapped inside the open panel.
+    panel.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        close();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const items = focusable();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+  }
+</script>
