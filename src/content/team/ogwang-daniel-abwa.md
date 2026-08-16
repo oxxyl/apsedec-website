@@ -5,4 +5,4 @@ board: true
 order: 1
 ---
 
-Named in APSEDEC PROFILE 2026.pdf, "Governance & Leadership".
+Chairs the Board of Directors, elected from APSEDEC's membership of 26 private-sector, public-sector and civil-society organisations.

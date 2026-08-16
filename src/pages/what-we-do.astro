@@ -2,42 +2,78 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHeader from '../components/PageHeader.astro';
+import ServiceIcon from '../components/ServiceIcon.astro';
+import TileCards from '../components/TileCards.astro';
 import { path } from '../lib/url';
-
-/* The four service lines are quoted from the profile's "What We Do"; the
-   seven practice areas are the disciplines listed on its cover. */
 
 const services = [
   {
-    ref: 'BDS',
+    icon: 'bds' as const,
     title: 'Business development services',
     body: 'For individual, group and farmer-association enterprises in the public and private sectors.',
   },
   {
-    ref: 'MF',
+    icon: 'microfinance' as const,
     title: 'Microfinance support and financial inclusion',
     body: 'Formation, training and digitalisation of VSLAs, SACCOs and MFIs in governance, operations, products and systems.',
   },
   {
-    ref: 'AGRI',
+    icon: 'agribusiness' as const,
     title: 'Agribusiness and value-chain development',
     body: 'Farmer institutional development, cooperative formation and market linkages.',
   },
   {
-    ref: 'GEN',
+    icon: 'gender' as const,
     title: 'Gender-transformative programming',
     body: 'Research, monitoring and evaluation, and policy advocacy.',
   },
 ];
 
+/* The disciplines APSEDEC lists for itself, with what each covers in
+   delivery. Financial Inclusion Services is named separately from
+   Microfinance Support at the client's instruction: the profile folds the two
+   together, but they are distinct offers. */
 const practices = [
-  'Business Development',
-  'Institutional Capacity Building',
-  'Microfinance Support',
-  'Gender Programming',
-  'Agribusiness Development',
-  'Social Research',
-  'Policy Advocacy',
+  {
+    name: 'Business Development',
+    detail:
+      'Enterprise development for individual, group and farmer-association businesses — business planning, records, market linkage and farming as a business.',
+  },
+  {
+    name: 'Institutional Capacity Building',
+    detail:
+      'Governance, systems and organisational strengthening for producer organisations, cooperatives, SACCOs and private-sector associations.',
+  },
+  {
+    name: 'Microfinance Support',
+    detail:
+      'Formation, training and digitalisation of VSLAs, SACCOs and MFIs in governance, operations, products and systems.',
+  },
+  {
+    name: 'Financial Inclusion Services',
+    detail:
+      'Bringing rural savers into the financial system — savings-led group formation, financial literacy, and linkage between mature groups and banks and other formal providers.',
+  },
+  {
+    name: 'Gender Programming',
+    detail:
+      'Gender-transformative delivery, including household dialogues on gender norms and programming for women-led enterprise.',
+  },
+  {
+    name: 'Agribusiness Development',
+    detail:
+      'Value-chain development, farmer institutional development, post-harvest handling, cooperative formation and market linkages.',
+  },
+  {
+    name: 'Social Research',
+    detail:
+      'Research, monitoring and evaluation across programmes, including baseline and results measurement.',
+  },
+  {
+    name: 'Policy Advocacy',
+    detail:
+      'Convening private-sector associations and district-level dialogue to strengthen participation in local governance.',
+  },
 ];
 
 /* Sectors actually delivered, counted from the project collection — evidence
@@ -80,7 +116,7 @@ const valueChains = [
           {
             services.map((service) => (
               <article class="ledger__row wwd__service">
-                <span class="stamp wwd__ref">{service.ref}</span>
+                <ServiceIcon name={service.icon} />
                 <div>
                   <h2 class="wwd__title">{service.title}</h2>
                   <p class="wwd__body">{service.body}</p>
@@ -102,9 +138,7 @@ const valueChains = [
       </div>
       <div>
         <h2>Practice areas</h2>
-        <ul class="wwd__practices">
-          {practices.map((p) => <li class="mono wwd__practice">{p}</li>)}
-        </ul>
+        <TileCards items={practices} label="Practice areas" />
       </div>
     </div>
   </section>
@@ -161,13 +195,10 @@ const valueChains = [
 
   @media (min-width: 40rem) {
     .wwd__service {
-      grid-template-columns: 6rem minmax(0, 1fr);
-      column-gap: var(--space-l);
+      grid-template-columns: 2.5rem minmax(0, 1fr);
+      column-gap: var(--space-m);
+      align-items: start;
     }
-  }
-
-  .wwd__ref {
-    justify-self: start;
   }
 
   .wwd__title {
@@ -180,7 +211,6 @@ const valueChains = [
   }
 
   /* --- Practices ---------------------------------------------------------- */
-  .wwd__practices,
   .wwd__chains {
     list-style: none;
     padding: 0;
@@ -190,7 +220,6 @@ const valueChains = [
     gap: var(--space-2xs);
   }
 
-  .wwd__practice,
   .wwd__chain {
     border: var(--hairline);
     padding: 0.5em 0.85em;

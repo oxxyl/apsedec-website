@@ -51,7 +51,13 @@ const partners = defineCollection({
       name: z.string(),
       logo: image().optional(), // optional until the client supplies logo files
       url: z.string().url().optional(),
-      type: z.enum(['donor', 'implementing', 'government']),
+      /**
+     * `founding` is UNDP alone: APSEDEC was established in June 1999 as a
+     * project under the Government of Uganda / UNDP Country Cooperation
+     * Framework (CCF I), which is a different relationship from funding a
+     * programme, and is presented separately.
+     */
+    type: z.enum(['founding', 'donor', 'implementing', 'government']),
     }),
 });
 
@@ -88,4 +94,24 @@ const faq = defineCollection({
   }),
 });
 
-export const collections = { projects, news, partners, team, resources, faq };
+/**
+ * Open vacancies. Postings are added and removed regularly, so /careers/ is
+ * driven entirely by this collection — an empty directory is a valid state and
+ * renders the "no open vacancies" message rather than a placeholder page.
+ *
+ * `closing` is a date so the page can sort by it and mark a posting closed
+ * without anyone having to delete the file on the day.
+ */
+const vacancies = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/vacancies' }),
+  schema: z.object({
+    title: z.string(),
+    closing: z.coerce.date(),
+    location: z.string(),
+    /** One-line summary for the listing; the Markdown body carries the detail. */
+    description: z.string(),
+    howToApply: z.string(),
+  }),
+});
+
+export const collections = { projects, news, partners, team, resources, faq, vacancies };

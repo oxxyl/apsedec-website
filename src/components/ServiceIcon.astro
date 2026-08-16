@@ -1,0 +1,102 @@
+---
+/**
+ * Line icons for the four service lines, replacing the BDS/MF/AGRI/GEN
+ * initials stamps.
+ *
+ * Drawn here as inline SVG rather than pulled from an icon set: no font, no
+ * sprite, no request. Each is a 1px navy stroke on a 32-unit grid, so they
+ * read as the same hairline vocabulary as the ledger rules — structure is
+ * navy per §4.1, and no icon carries a fill.
+ *
+ * Icons are decorative: each sits beside its own heading, so they are
+ * aria-hidden and add nothing for a screen reader to re-read.
+ */
+interface Props {
+  name: 'bds' | 'microfinance' | 'agribusiness' | 'gender' | 'inclusion';
+}
+
+const { name } = Astro.props;
+---
+
+<svg
+  class="svc-icon"
+  viewBox="0 0 32 32"
+  aria-hidden="true"
+  focusable="false"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.25"
+  stroke-linecap="square"
+  stroke-linejoin="miter"
+>
+  {
+    name === 'bds' && (
+      /* Enterprise growth: a rising bar series under a baseline. */
+      <>
+        <path d="M4 27h24" />
+        <rect x="7" y="18" width="4.5" height="9" />
+        <rect x="14" y="12" width="4.5" height="15" />
+        <rect x="21" y="6" width="4.5" height="21" />
+      </>
+    )
+  }
+  {
+    name === 'microfinance' && (
+      /* Microfinance: a coin stack beside a savings box. */
+      <>
+        <path d="M4 27h24" />
+        <ellipse cx="10" cy="10" rx="5.5" ry="2.5" />
+        <path d="M4.5 10v9c0 1.4 2.5 2.5 5.5 2.5s5.5-1.1 5.5-2.5v-9" />
+        <path d="M4.5 15c0 1.4 2.5 2.5 5.5 2.5s5.5-1.1 5.5-2.5" />
+        <rect x="19" y="14" width="9" height="7.5" />
+        <path d="M21.5 14v-2.5h4V14" />
+      </>
+    )
+  }
+  {
+    name === 'agribusiness' && (
+      /* Agribusiness: a seedling over a furrow line. */
+      <>
+        <path d="M4 27h24" />
+        <path d="M16 23V11" />
+        <path d="M16 15c0-3.5-2.5-6-6-6 0 3.5 2.5 6 6 6Z" />
+        <path d="M16 12c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6Z" />
+      </>
+    )
+  }
+  {
+    name === 'gender' && (
+      /* Gender programming: two figures, one circle linked to the other. */
+      <>
+        <circle cx="11" cy="9" r="4" />
+        <path d="M11 13v10" />
+        <path d="M7 17h8" />
+        <circle cx="22" cy="12" r="3.5" />
+        <path d="M22 15.5V25" />
+        <path d="M18.5 21h7" />
+      </>
+    )
+  }
+  {
+    name === 'inclusion' && (
+      /* Financial inclusion: a widening circle of members around a centre. */
+      <>
+        <circle cx="16" cy="16" r="3" />
+        <circle cx="16" cy="5.5" r="2.25" />
+        <circle cx="26.5" cy="16" r="2.25" />
+        <circle cx="16" cy="26.5" r="2.25" />
+        <circle cx="5.5" cy="16" r="2.25" />
+        <path d="M16 8v5M19 16h5M16 24v-5M13 16H8" />
+      </>
+    )
+  }
+</svg>
+
+<style>
+  .svc-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--navy);
+    flex-shrink: 0;
+  }
+</style>

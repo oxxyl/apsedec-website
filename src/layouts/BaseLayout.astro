@@ -11,8 +11,6 @@ import '../styles/base.css';
 interface Props {
   title: string;
   description?: string;
-  /** Home only: header sits transparent over the green hero panel. */
-  headerOnBrand?: boolean;
   /** Receipt page (§8.2) and other non-indexable routes. */
   noindex?: boolean;
 }
@@ -20,7 +18,6 @@ interface Props {
 const {
   title,
   description = SITE.description,
-  headerOnBrand = false,
   noindex = false,
 } = Astro.props;
 
@@ -85,7 +82,7 @@ const canonical = absolute(routePath(Astro.url.pathname), Astro.site ?? SITE.url
 
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <Header onBrand={headerOnBrand} />
+    <Header />
     <main id="main" tabindex="-1">
       <slot />
     </main>

@@ -1,6 +1,7 @@
 ---
 name: "TechnoServe"
+logo: ../../assets/partners/technoserve.png
 type: implementing
 ---
 
-Named in APSEDEC PROFILE 2026.pdf. Logo file and relationship note pending.
+Lead on the Producer Organization Activity, a component of the USAID Feed the Future programme delivered in Gulu, Lira and Masindi.

@@ -3,21 +3,24 @@ import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 
 /**
- * Partner logo bar (BRIEF.md §5) — greyscale at rest, colour on hover.
+ * Partner logo strip (BRIEF.md §5) — a single horizontal run at the foot of
+ * the home page, greyscale at rest and colour on hover.
  *
- * This bar is a LOGO WALL. Text and initials are a temporary stand-in only:
- * every slot below is sized and positioned for an actual logo file, and the
- * placeholder is deliberately drawn as an empty frame (navy dashed, §13) so it
- * never reads as a designed wordmark treatment.
+ * Only partners that actually have a logo file appear in the strip; the count
+ * still awaiting a file is reported underneath rather than drawn as empty
+ * frames, so the strip reads as a finished row instead of a gap-toothed one.
  *
- * To fill a slot: add the logo file and reference it from the partner's
- * Markdown file — nothing here needs changing.
+ * Several logos here are interim, recovered from the 2019/2020 annual report
+ * and therefore low resolution. `width` is capped at each file's own natural
+ * width so none of them is ever scaled up — a small logo stays small rather
+ * than going soft. Replacing the file is the whole fix; nothing here changes.
  */
-const partners = (await getCollection('partners'))
-  .filter((p) => p.data.type === 'donor' || p.data.type === 'government')
-  .sort((a, b) => a.data.name.localeCompare(b.data.name));
+const all = (await getCollection('partners')).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name)
+);
 
-const awaiting = partners.filter((p) => !p.data.logo).length;
+const withLogo = all.filter((p) => p.data.logo);
+const awaiting = all.length - withLogo.length;
 
 /**
  * Optical sizing. Capping every logo at one height makes portrait marks read
@@ -31,89 +34,93 @@ const shapeOf = (logo: { width: number; height: number }) => {
   if (aspect >= 0.85) return 'square';
   return 'tall';
 };
+
+/** 260px covers a ~130px slot at 2x — but never beyond the file's own width. */
+const emitWidth = (logo: { width: number }) => Math.min(260, logo.width);
 ---
 
-<ul class="partners" aria-label="Donors and government partners">
-  {
-    partners.map((partner) => (
-      <li
-        class:list={[
-          'partners__slot',
-          partner.data.logo ? 'partners__slot--filled' : 'partners__slot--empty',
-        ]}
-        data-shape={partner.data.logo ? shapeOf(partner.data.logo) : undefined}
-      >
-        {
-          partner.data.logo ? (
-            partner.data.logo.format === 'svg' ? (
-              // SVG passes through untouched — nothing to optimise.
-              <img
-                src={partner.data.logo.src}
-                width={partner.data.logo.width}
-                height={partner.data.logo.height}
-                alt={partner.data.name}
-                loading="lazy"
-                decoding="async"
-              />
-            ) : (
-              // One 260px-wide WebP each. The slot renders a logo about 130px
-              // wide, so this covers 2x displays with no srcset to negotiate.
-              <Image
-                src={partner.data.logo}
-                alt={partner.data.name}
-                width={260}
-                format="webp"
-                quality={80}
-                loading="lazy"
-                decoding="async"
-              />
-            )
+<div class="partners__scroll" tabindex="0" role="group" aria-label="Partner and donor logos">
+  <ul class="partners">
+    {
+      withLogo.map((partner) => (
+        <li class="partners__slot" data-shape={shapeOf(partner.data.logo!)}>
+          {partner.data.logo!.format === 'svg' ? (
+            // SVG passes through untouched — nothing to optimise.
+            <img
+              src={partner.data.logo!.src}
+              width={partner.data.logo!.width}
+              height={partner.data.logo!.height}
+              alt={partner.data.name}
+              loading="lazy"
+              decoding="async"
+            />
           ) : (
-            <span class="partners__awaiting">{partner.data.name}</span>
-          )
-        }
-      </li>
-    ))
-  }
-</ul>
+            <Image
+              src={partner.data.logo!}
+              alt={partner.data.name}
+              width={emitWidth(partner.data.logo!)}
+              format="webp"
+              quality={80}
+              loading="lazy"
+              decoding="async"
+            />
+          )}
+        </li>
+      ))
+    }
+  </ul>
+</div>
 
 {
   awaiting > 0 && (
     <p class="partners__status mono" data-pending>
-      ▶ [{awaiting} PARTNER LOGO FILES — awaiting client] Each frame above is a
-      logo slot at final size. Names are shown only so you can tell which file
-      goes where.
+      ▶ [{awaiting} PARTNER LOGO FILES — awaiting client] Those partners are
+      listed on the partners page; they join this strip as each file arrives.
     </p>
   )
 }
 
 <style>
+  /* One horizontal run. Too many logos to fit at any width, so the strip
+     scrolls inside its own box and the page never scrolls sideways. */
+  .partners__scroll {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    padding-bottom: var(--space-2xs);
+  }
+
+  .partners__scroll:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+  }
+
   .partners {
     list-style: none;
     padding: 0;
     margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
     gap: var(--space-2xs);
+    width: max-content;
   }
 
-  /* Every slot is the same box, logo or not, so the wall does not reflow when
-     the real files land. */
   .partners__slot {
     display: grid;
     place-items: center;
+    flex: 0 0 auto;
+    inline-size: 8.5rem;
     min-height: 5.5rem;
     padding: var(--space-2xs) var(--space-xs);
     border: var(--hairline);
-  }
+    scroll-snap-align: start;
 
-  /*
-    A white field, not the page green. Eight of the supplied logos are opaque
-    JPEGs carrying their own white background — on a green ground they would
-    read as white rectangles of slightly different sizes. White makes the
-    opaque and the transparent files sit identically.
-  */
-  .partners__slot--filled {
+    /*
+      A white field, not the page green. Several supplied logos are opaque
+      JPEGs carrying their own white background — on a green ground they would
+      read as white rectangles of slightly different sizes. White makes the
+      opaque and the transparent files sit identically.
+    */
     background: #ffffff;
     /* Greyscale at rest, colour on hover — on the frame, so it works for any
        logo file without per-logo styling. */
@@ -123,8 +130,8 @@ const shapeOf = (logo: { width: number; height: number }) => {
       opacity var(--dur-fast) var(--ease);
   }
 
-  .partners__slot--filled:hover,
-  .partners__slot--filled:focus-within {
+  .partners__slot:hover,
+  .partners__slot:focus-within {
     filter: grayscale(0);
     opacity: 1;
   }
@@ -149,25 +156,20 @@ const shapeOf = (logo: { width: number; height: number }) => {
     max-height: 4rem;
   }
 
-  /* Empty slot: unmistakably a missing asset, not a type treatment. */
-  .partners__slot--empty {
-    border-style: dashed;
-    background: var(--paper-sunk);
-  }
-
-  .partners__awaiting {
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    line-height: 1.3;
-    text-align: center;
-    color: var(--text-muted);
-    text-wrap: balance;
-  }
-
   .partners__status {
     margin-top: var(--space-s);
     font-size: var(--step--2);
     color: var(--navy);
     max-width: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .partners__scroll {
+      scroll-snap-type: none;
+    }
+
+    .partners__slot {
+      transition: none;
+    }
   }
 </style>

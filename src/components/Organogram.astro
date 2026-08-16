@@ -1,0 +1,326 @@
+---
+/**
+ * APSEDEC organisational structure, drawn as inline SVG.
+ *
+ * The tree below is taken from the organisation chart in the company profile
+ * (p.9) — read off that chart's own connector geometry, not inferred from how
+ * the boxes happen to line up. Two edges are worth calling out because the
+ * visual columns are misleading: the four support roles (transport, office
+ * assistants, cleaners, compound attendants) hang off the Admin. Assistant,
+ * not off the specialists they sit beneath; and the Advisory Committee joins
+ * laterally to the CEO rather than sitting in the reporting line.
+ *
+ * Mobile: the SVG is hidden below 30rem and the same tree renders as a nested
+ * list, because a five-column chart squashed to 360px is unreadable. Both are
+ * generated from TREE, so they cannot drift apart. The SVG is aria-hidden and
+ * the list is the accessible representation at every width — a screen reader
+ * gets the nested list regardless of viewport.
+ */
+
+interface Node {
+  label: string;
+  children?: Node[];
+}
+
+const TREE: Node = {
+  label: 'AGM',
+  children: [
+    {
+      label: 'Board of Directors',
+      children: [
+        {
+          label: 'Chief Executive Officer',
+          children: [
+            {
+              label: 'Finance & Admin Mgr',
+              children: [
+                {
+                  label: 'Admin. Assistant',
+                  children: [
+                    { label: 'Transport & Logistics Assistant' },
+                    { label: 'Office Assistants' },
+                    { label: 'Office Cleaners' },
+                    { label: 'Compound Attendants' },
+                  ],
+                },
+              ],
+            },
+            {
+              label: 'Micro Finance Specialist',
+              children: [{ label: 'VSLA P. Os & CBTs' }],
+            },
+            {
+              label: "Business Dev't. Service Manager",
+              children: [{ label: 'Company Accredited Trainers' }],
+            },
+            {
+              label: 'M&E Specialist',
+              children: [{ label: 'M&E Assistants' }],
+            },
+            {
+              label: 'Agric. Extension Team Leader',
+              children: [
+                {
+                  label: 'Field Extension Coordinators',
+                  children: [{ label: 'Field Extension Workers' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+/** Advises the CEO; not a reporting line. */
+const ADVISORY = 'Advisory Committee';
+
+/* --- Layout -------------------------------------------------------------
+   Columns are the five management branches; rows are depth. Geometry is
+   computed rather than hand-placed so a change to TREE re-lays the chart. */
+const COL_W = 190;
+const COL_GAP = 16;
+const ROW_H = 74;
+const BOX_H = 46;
+const PAD = 8;
+
+const managers = TREE.children![0].children![0].children!;
+const COLS = managers.length;
+const W = COLS * COL_W + (COLS - 1) * COL_GAP + PAD * 2;
+
+
+const colX = (i: number) => PAD + i * (COL_W + COL_GAP);
+const rowY = (r: number) => PAD + r * ROW_H;
+const centreX = colX(0) + (W - PAD * 2) / 2 - COL_W / 2;
+
+interface Box {
+  x: number;
+  y: number;
+  w: number;
+  label: string;
+}
+const boxes: Box[] = [];
+const links: string[] = [];
+
+/** Vertical drop then horizontal bus into each child column. */
+const connect = (fromX: number, fromY: number, toX: number, toY: number) => {
+  const midY = fromY + (toY - fromY) / 2;
+  links.push(`M ${fromX} ${fromY} V ${midY} H ${toX} V ${toY}`);
+};
+
+// Spine: AGM -> Board -> CEO, centred.
+boxes.push({ x: centreX, y: rowY(0), w: COL_W, label: TREE.label });
+boxes.push({ x: centreX, y: rowY(1), w: COL_W, label: 'Board of Directors' });
+boxes.push({ x: centreX, y: rowY(2), w: COL_W, label: 'Chief Executive Officer' });
+connect(centreX + COL_W / 2, rowY(0) + BOX_H, centreX + COL_W / 2, rowY(1));
+connect(centreX + COL_W / 2, rowY(1) + BOX_H, centreX + COL_W / 2, rowY(2));
+
+// Advisory committee: lateral join to the CEO.
+const advX = centreX + COL_W + COL_GAP * 2;
+boxes.push({ x: advX, y: rowY(2), w: COL_W, label: ADVISORY });
+links.push(`M ${advX} ${rowY(2) + BOX_H / 2} H ${centreX + COL_W}`);
+
+// Manager columns and everything beneath them.
+managers.forEach((manager, i) => {
+  const x = colX(i);
+  let row = 3;
+  boxes.push({ x, y: rowY(row), w: COL_W, label: manager.label });
+  connect(centreX + COL_W / 2, rowY(2) + BOX_H, x + COL_W / 2, rowY(row));
+
+  // Each manager's chain is linear except Admin. Assistant, whose four
+  // reports are stacked beneath it in the same column.
+  let node = manager.children?.[0];
+  let parentY = rowY(row);
+  while (node) {
+    row += 1;
+    boxes.push({ x, y: rowY(row), w: COL_W, label: node.label });
+    connect(x + COL_W / 2, parentY + BOX_H, x + COL_W / 2, rowY(row));
+    parentY = rowY(row);
+
+    if (node.children && node.children.length > 1) {
+      // Stack the leaf group below, joined by one bus down the left edge.
+      const stackTop = rowY(row + 1);
+      node.children.forEach((leaf, k) => {
+        const y = stackTop + k * (BOX_H + 8);
+        boxes.push({ x: x + 14, y, w: COL_W - 14, label: leaf.label });
+        links.push(`M ${x + 7} ${parentY + BOX_H} V ${y + BOX_H / 2} H ${x + 14}`);
+      });
+      node = undefined;
+    } else {
+      node = node.children?.[0];
+    }
+  }
+});
+
+const bottom = Math.max(...boxes.map((b) => b.y + BOX_H)) + PAD;
+
+/** Wrap a label onto at most three lines for the fixed-width boxes. */
+const wrap = (label: string, max = 22) => {
+  const words = label.split(' ');
+  const lines: string[] = [];
+  let line = '';
+  for (const w of words) {
+    if ((line + ' ' + w).trim().length > max && line) {
+      lines.push(line);
+      line = w;
+    } else {
+      line = (line + ' ' + w).trim();
+    }
+  }
+  if (line) lines.push(line);
+  return lines.slice(0, 3);
+};
+
+/**
+ * Flatten TREE for the nested-list fallback. The Advisory Committee is not a
+ * TREE node (it advises rather than reports), so it is inserted alongside the
+ * CEO's reports and labelled — otherwise the accessible representation would
+ * silently drop a box the diagram shows.
+ */
+const renderList = (n: Node): string => {
+  const extra =
+    n.label === 'Chief Executive Officer'
+      ? `<li><span>${ADVISORY} <em>(advisory, not a reporting line)</em></span></li>`
+      : '';
+  const kids =
+    n.children?.length || extra
+      ? `<ul>${extra}${(n.children ?? []).map(renderList).join('')}</ul>`
+      : '';
+  return `<li><span>${n.label}</span>${kids}</li>`;
+};
+const listHtml = `<ul class="org__list">${renderList(TREE)}</ul>`;
+---
+
+<figure class="org">
+  <svg
+    class="org__svg"
+    viewBox={`0 0 ${W} ${bottom}`}
+    role="presentation"
+    aria-hidden="true"
+    focusable="false"
+  >
+    {links.map((d) => <path d={d} class="org__link" fill="none" />)}
+    {
+      boxes.map((b) => {
+        const lines = wrap(b.label);
+        const startY = b.y + BOX_H / 2 - ((lines.length - 1) * 11) / 2 + 4;
+        return (
+          <g>
+            <rect x={b.x} y={b.y} width={b.w} height={BOX_H} class="org__box" />
+            {lines.map((line, li) => (
+              <text x={b.x + b.w / 2} y={startY + li * 11} class="org__text">
+                {line}
+              </text>
+            ))}
+          </g>
+        );
+      })
+    }
+  </svg>
+
+  <div class="org__fallback" set:html={listHtml} />
+
+  <figcaption class="org__caption mono">
+    The Advisory Committee advises the Chief Executive Officer; it does not sit
+    in the reporting line.
+  </figcaption>
+</figure>
+
+<style>
+  .org {
+    margin: var(--space-s) 0 0;
+  }
+
+  .org__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .org__box {
+    fill: var(--paper-raised);
+    stroke: var(--navy);
+    stroke-width: 1;
+  }
+
+  .org__link {
+    stroke: var(--navy);
+    stroke-width: 1;
+  }
+
+  .org__text {
+    font-family: var(--font-body);
+    font-size: 9.5px;
+    fill: var(--ink);
+    text-anchor: middle;
+  }
+
+  .org__caption {
+    margin-top: var(--space-2xs);
+    font-size: var(--step--2);
+    color: var(--text-muted);
+    max-width: none;
+  }
+
+  /* --- Narrow screens: the chart becomes a nested list -------------------
+     Wide screens hide the list visually but keep it in the accessibility
+     tree — the SVG is aria-hidden, so this list is the only thing a screen
+     reader has to read the structure from, at every width. */
+  .org__fallback {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 30rem) {
+    .org__svg {
+      display: none;
+    }
+
+    .org__fallback {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+    }
+  }
+
+  .org__fallback :global(ul) {
+    list-style: none;
+    margin: 0;
+    padding-left: 0;
+  }
+
+  .org__fallback :global(ul ul) {
+    padding-left: var(--space-s);
+    border-left: var(--hairline);
+    margin-left: var(--space-3xs);
+  }
+
+  .org__fallback :global(li) {
+    margin: 0;
+    padding-block: var(--space-3xs);
+  }
+
+  .org__fallback :global(li > span) {
+    display: block;
+    font-size: var(--step--1);
+    line-height: var(--leading-snug);
+    color: var(--heading);
+  }
+
+  .org__fallback :global(ul ul li > span) {
+    color: var(--text);
+  }
+
+  .org__fallback :global(ul ul ul li > span) {
+    color: var(--text-muted);
+  }
+</style>

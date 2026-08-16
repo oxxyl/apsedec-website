@@ -1,0 +1,167 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { CONTACT } from '../config';
+import { path } from '../lib/url';
+
+/**
+ * Careers (§A5). Driven entirely by the `vacancies` collection — adding a
+ * Markdown file publishes a role, deleting it takes the role down, and an
+ * empty collection is a valid state that renders the closed-for-now message.
+ *
+ * A posting whose closing date has passed drops out automatically, so nobody
+ * has to remember to remove it on the day.
+ */
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const all = await getCollection('vacancies');
+const open = all
+  .filter((v) => v.data.closing >= today)
+  .sort((a, b) => a.data.closing.getTime() - b.data.closing.getTime());
+
+// Render each body once, up front — Astro's render() is async.
+const posts = await Promise.all(
+  open.map(async (v) => ({ entry: v, Content: (await render(v)).Content }))
+);
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<BaseLayout
+  title="Careers"
+  description="Vacancies at APSEDEC — current openings, closing dates and how to apply."
+>
+  <PageHeader
+    title="Careers"
+    eyebrow="§ Careers"
+    lede="APSEDEC recruits for programme, field and support roles as projects begin. Open vacancies are listed here with their closing dates."
+  />
+
+  <section class="section">
+    <div class="container">
+      {
+        posts.length === 0 ? (
+          <div class="vac__empty">
+            <p class="vac__empty-lead">There are no open vacancies at the moment.</p>
+            <p class="vac__empty-body">
+              New roles are posted on this page as projects start. To register interest
+              for future openings, write to{' '}
+              <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a> with your CV and the
+              kind of role you are looking for.
+            </p>
+            <p class="vac__empty-body">
+              APSEDEC also works through a network of accredited community-based trainers
+              and facilitators — see <a href={path('/what-we-do/')}>what we do</a> for how
+              those teams are used.
+            </p>
+          </div>
+        ) : (
+          <ol class="vac__list ledger">
+            {posts.map(({ entry, Content }) => (
+              <li class="vac__item ledger__row">
+                <div class="vac__meta">
+                  <p class="label vac__closing">Closes {fmt(entry.data.closing)}</p>
+                  <p class="mono vac__location">{entry.data.location}</p>
+                </div>
+                <div class="vac__main">
+                  <h2 class="vac__title">{entry.data.title}</h2>
+                  <p class="vac__summary">{entry.data.description}</p>
+
+                  <div class="vac__detail prose">
+                    <Content />
+                  </div>
+
+                  <div class="vac__apply">
+                    <h3 class="label">How to apply</h3>
+                    <p>{entry.data.howToApply}</p>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ol>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .vac__empty {
+    max-width: 60ch;
+    border-top: var(--hairline);
+    padding-top: var(--space-m);
+  }
+
+  .vac__empty-lead {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    line-height: var(--leading-snug);
+    color: var(--heading);
+    margin: 0 0 var(--space-s);
+    text-wrap: balance;
+  }
+
+  .vac__empty-body {
+    margin: 0 0 var(--space-s);
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+
+  .vac__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .vac__item {
+    display: grid;
+    grid-template-columns: 12rem 1fr;
+    gap: var(--space-m);
+    padding-block: var(--space-m);
+  }
+
+  .vac__closing {
+    margin: 0;
+    color: var(--gold-deep);
+  }
+
+  .vac__location {
+    margin: var(--space-3xs) 0 0;
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .vac__title {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    line-height: var(--leading-snug);
+    color: var(--heading);
+    margin: 0 0 var(--space-2xs);
+  }
+
+  .vac__summary {
+    margin: 0 0 var(--space-s);
+    text-wrap: pretty;
+  }
+
+  .vac__apply {
+    border-top: var(--hairline-faint);
+    margin-top: var(--space-s);
+    padding-top: var(--space-2xs);
+  }
+
+  .vac__apply p {
+    margin: var(--space-3xs) 0 0;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 40rem) {
+    .vac__item {
+      grid-template-columns: 1fr;
+      gap: var(--space-2xs);
+    }
+  }
+</style>

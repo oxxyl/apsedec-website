@@ -1,0 +1,198 @@
+---
+/**
+ * Tile cards — a grid of named tiles whose detail appears on hover and on
+ * keyboard focus, with a brief bounce when one is selected.
+ *
+ * Used for the core values (About) and the practice areas (What We Do), so the
+ * two read as the same object.
+ *
+ * Accessibility and progressive enhancement:
+ *   - each tile is a real <button>, so it is tabbable and operable by keyboard;
+ *   - the detail is revealed by :hover AND :focus-visible in CSS, so it is
+ *     reachable with no JavaScript at all;
+ *   - script only adds click-to-pin (aria-expanded) and the bounce class;
+ *   - the bounce is wrapped in prefers-reduced-motion: no-preference, and the
+ *     reveal transition collapses to 0ms via --dur-fast under reduce.
+ */
+interface Item {
+  name: string;
+  detail: string;
+}
+
+interface Props {
+  items: Item[];
+  /** Accessible name for the group, e.g. "Core values". */
+  label: string;
+  /** Numbered 01, 02 … in the corner of each tile. */
+  numbered?: boolean;
+}
+
+const { items, label, numbered = true } = Astro.props;
+---
+
+<ul class="tiles" aria-label={label} data-tiles>
+  {
+    items.map((item, i) => (
+      <li class="tiles__cell">
+        {/*
+          The button is only the hit target and focus ring; layout happens on
+          the span inside it. A <button> wraps its children in an anonymous
+          box, which makes a collapsing child inside a button-as-grid-container
+          unreliable — the row stays at zero however the child is sized.
+        */}
+        <button type="button" class="tile" aria-expanded="false" data-tile>
+          <span class="tile__inner">
+            {numbered && <span class="tile__index mono">{String(i + 1).padStart(2, '0')}</span>}
+            <span class="tile__name">{item.name}</span>
+            <span class="tile__detail">
+              <span class="tile__detail-inner">{item.detail}</span>
+            </span>
+          </span>
+        </button>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .tiles {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-s) 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--space-2xs);
+  }
+
+  .tiles__cell {
+    margin: 0;
+    display: flex;
+  }
+
+  .tile {
+    /* A tile is a button; strip the UA chrome and rebuild it as flat stock. */
+    appearance: none;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    width: 100%;
+    display: block;
+    padding: var(--space-s);
+    background: var(--paper-raised);
+    border: var(--hairline);
+    color: var(--text);
+    transition: background var(--dur-fast) var(--ease);
+  }
+
+  .tile__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    align-items: stretch;
+  }
+
+  .tile:hover,
+  .tile:focus-visible {
+    background: var(--paper-sunk);
+  }
+
+  .tile:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .tile__index {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .tile__name {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+    color: var(--heading);
+  }
+
+  /*
+    The detail is collapsed by default and revealed on hover, on keyboard
+    focus, or when pinned open. grid-template-rows animates cleanly from 0fr
+    to 1fr without needing a measured pixel height.
+  */
+  /*
+    Collapsed by default; revealed on hover, on keyboard focus, or when
+    pinned open.
+
+    This animates max-height rather than the tidier grid 0fr->1fr trick: the
+    inner element needs overflow:hidden to clip while collapsing, and that
+    zeroes the track's automatic minimum, so `1fr` resolves to 0 in this
+    auto-height grid and the panel never opens. The cap below only has to
+    exceed the tallest detail — nothing is ever clipped at rest.
+  */
+  .tile__detail {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    font-size: var(--step--1);
+    line-height: 1.55;
+    color: var(--text-muted);
+    transition:
+      max-height var(--dur-fast) var(--ease),
+      opacity var(--dur-fast) var(--ease);
+  }
+
+  .tile:hover .tile__detail,
+  .tile:focus-visible .tile__detail,
+  .tile[aria-expanded='true'] .tile__detail {
+    max-height: 20rem;
+    opacity: 1;
+  }
+
+  .tile__detail-inner {
+    display: block;
+    padding-top: var(--space-3xs);
+  }
+
+  /* The bounce: added by script on activation, removed when it finishes. */
+  @media (prefers-reduced-motion: no-preference) {
+    .tile[data-bounce] {
+      animation: tile-bounce 260ms var(--ease);
+    }
+
+    @keyframes tile-bounce {
+      0% {
+        transform: scale(1);
+      }
+      45% {
+        transform: scale(1.035);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+  }
+</style>
+
+<script>
+  // Each group is independent, so bind per list rather than globally.
+  for (const group of document.querySelectorAll<HTMLElement>('[data-tiles]')) {
+    const tiles = [...group.querySelectorAll<HTMLButtonElement>('[data-tile]')];
+
+    for (const tile of tiles) {
+      tile.addEventListener('click', () => {
+        const open = tile.getAttribute('aria-expanded') === 'true';
+
+        // One open at a time — the tile you pick is the one you are reading.
+        for (const other of tiles) other.setAttribute('aria-expanded', 'false');
+        tile.setAttribute('aria-expanded', String(!open));
+
+        if (open) return;
+        tile.removeAttribute('data-bounce');
+        // Reflow so the animation restarts when the same tile is re-selected.
+        void tile.offsetWidth;
+        tile.setAttribute('data-bounce', '');
+      });
+
+      tile.addEventListener('animationend', () => tile.removeAttribute('data-bounce'));
+    }
+  }
+</script>

@@ -1,8 +1,26 @@
 ---
 import Logo from './Logo.astro';
 import Placeholder from './Placeholder.astro';
-import { SITE, CONTACT, NAV, OFFICES } from '../config';
-import { path } from '../lib/url';
+import { SITE, CONTACT, NAV, OFFICES, SOCIAL, SOCIAL_LIVE } from '../config';
+import { path, tel } from '../lib/url';
+
+/**
+ * Social icons are drawn inline rather than pulled from an icon font, and the
+ * whole row is gated on SOCIAL_LIVE: until the client supplies the four
+ * account URLs the footer shows nothing at all, instead of icons that lead
+ * nowhere. Flip SOCIAL_LIVE in src/config.ts once the urls are filled in.
+ */
+const socials = SOCIAL_LIVE ? SOCIAL.filter((s) => s.url) : [];
+
+const ICONS: Record<string, string> = {
+  youtube:
+    'M23 12s0-3.4-.4-5a2.6 2.6 0 0 0-1.8-1.9C19.1 4.7 12 4.7 12 4.7s-7.1 0-8.8.4A2.6 2.6 0 0 0 1.4 7C1 8.6 1 12 1 12s0 3.4.4 5a2.6 2.6 0 0 0 1.8 1.9c1.7.4 8.8.4 8.8.4s7.1 0 8.8-.4A2.6 2.6 0 0 0 22.6 17c.4-1.6.4-5 .4-5ZM9.8 15.3V8.7l5.9 3.3-5.9 3.3Z',
+  x: 'M13.7 10.6 21.4 2h-1.8l-6.7 7.5L7.6 2H1.5l8 11.6L1.5 22h1.8l7-7.9 5.6 7.9h6.1l-8.3-11.4Zm-2.5 2.8-.8-1.2L4 3.3h2.8l5.2 7.4.8 1.2 6.8 9.6h-2.8l-5.6-7.9Z',
+  linkedin:
+    'M6.9 21.5H2.9V8.9h4V21.5ZM4.9 7.2a2.3 2.3 0 1 1 0-4.7 2.3 2.3 0 0 1 0 4.7ZM21.5 21.5h-4v-6.1c0-1.5 0-3.4-2.1-3.4s-2.4 1.6-2.4 3.3v6.2h-4V8.9h3.8v1.7h.1a4.2 4.2 0 0 1 3.8-2.1c4 0 4.8 2.7 4.8 6.1v6.9Z',
+  facebook:
+    'M22 12.1a10 10 0 1 0-11.6 9.9v-7H7.9v-2.9h2.5V9.9c0-2.5 1.5-3.8 3.7-3.8 1.1 0 2.2.2 2.2.2v2.4h-1.2c-1.2 0-1.6.8-1.6 1.6v1.8h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12.1Z',
+};
 
 const year = new Date().getFullYear();
 ---
@@ -11,7 +29,7 @@ const year = new Date().getFullYear();
   <div class="container">
     <div class="site-footer__top">
       <div class="site-footer__brand">
-        <Logo variant="white" size="md" />
+        <Logo variant="onDark" size="md" />
         <p class="site-footer__tagline">{SITE.tagline}</p>
       </div>
 
@@ -35,7 +53,7 @@ const year = new Date().getFullYear();
             {
               CONTACT.phones.map((phone) => (
                 <li>
-                  <a href={`tel:+256${phone.replace(/^0/, '')}`}>{phone}</a>
+                  <a href={tel(phone)}>{phone}</a>
                 </li>
               ))
             }
@@ -49,6 +67,31 @@ const year = new Date().getFullYear();
             {NAV.map((item) => <li><a href={path(item.href)}>{item.label}</a></li>)}
             <li><a href={path('/donate/')}>Donate</a></li>
           </ul>
+
+          {
+            socials.length > 0 && (
+              <>
+                <p class="label site-footer__sublabel">Follow</p>
+                <ul class="site-footer__social">
+                  {socials.map((s) => (
+                    <li>
+                      <a
+                        href={s.url}
+                        class="site-footer__social-link"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        <span class="visually-hidden">{`APSEDEC on ${s.label}`}</span>
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d={ICONS[s.id]} fill="currentColor" />
+                        </svg>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )
+          }
         </section>
       </div>
     </div>
@@ -112,6 +155,35 @@ const year = new Date().getFullYear();
     font-size: var(--step--1);
     line-height: 1.55;
     color: var(--green-200);
+  }
+
+  .site-footer__social {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-2xs) 0 0;
+    display: flex;
+    gap: var(--space-xs);
+  }
+
+  .site-footer__social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 44px touch target while the glyph itself stays 20px. */
+    width: 44px;
+    height: 44px;
+    margin-inline-start: -12px;
+    color: #ffffff;
+  }
+
+  .site-footer__social-link svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .site-footer__social-link:hover {
+    background: transparent;
+    color: var(--gold);
   }
 
   .site-footer__sublabel {

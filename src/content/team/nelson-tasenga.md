@@ -5,4 +5,4 @@ board: false
 order: 1
 ---
 
-Named in APSEDEC PROFILE 2026.pdf, "Governance & Leadership".
+Leads the management team day to day.

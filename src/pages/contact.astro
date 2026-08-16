@@ -2,7 +2,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHeader from '../components/PageHeader.astro';
 import Placeholder from '../components/Placeholder.astro';
-import { CONTACT, OFFICES, WEB3FORMS_ACCESS_KEY } from '../config';
+import { CONTACT, OFFICES, WEB3FORMS_ACCESS_KEY, HQ_MAP_URL } from '../config';
+import { tel } from '../lib/url';
 
 /* The form posts straight to Web3Forms (no server, BRIEF.md §3.4). Until the
    client supplies an access key it ships disabled with the email route live,
@@ -102,7 +103,7 @@ const others = OFFICES.filter((o) => o.type !== 'head');
               <dt class="mono contact__key">Phone</dt>
               <dd class="contact__value mono">
                 {CONTACT.phones.map((p) => (
-                  <a href={`tel:+256${p.replace(/^0/, '')}`} class="contact__phone">{p}</a>
+                  <a href={tel(p)} class="contact__phone">{p}</a>
                 ))}
               </dd>
             </div>
@@ -116,8 +117,8 @@ const others = OFFICES.filter((o) => o.type !== 'head');
             </div>
           </dl>
           <p class="contact__note">
-            <Placeholder label="CONFIRMATION OF THE PRIMARY EMAIL ADDRESS" inline /> — the
-            2026 profile prints the Yahoo address; the site shows {CONTACT.email}.
+            <Placeholder label="CONFIRMATION OF THE PRIMARY EMAIL ADDRESS" inline /> — APSEDEC
+            to confirm which address should be the published one.
           </p>
         </aside>
       </div>
@@ -139,8 +140,16 @@ const others = OFFICES.filter((o) => o.type !== 'head');
           <p class="mono office__tag">Head office</p>
           <h3 class="office__town">{head.town}</h3>
           <address class="office__address">
-            {head.address}<br />
-            {head.town}, Uganda
+            <a
+              class="office__map"
+              href={HQ_MAP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {head.address}<br />
+              {head.town}, Uganda
+              <span class="visually-hidden"> — open in Google Maps, opens in a new tab</span>
+            </a>
           </address>
           <p class="mono office__phone">{head.phone}</p>
         </article>
@@ -345,6 +354,21 @@ const others = OFFICES.filter((o) => o.type !== 'head');
     font-size: var(--step--1);
     line-height: 1.5;
     color: var(--text-muted);
+  }
+
+  /* The head-office address is the map link. Navy underline per §4.1 —
+     the rule is structure, gold would be a line and is barred. */
+  .office__map {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+    text-underline-offset: 0.2em;
+  }
+
+  .office__map:hover {
+    background: transparent;
+    color: var(--green-700);
+    text-decoration-color: var(--navy);
   }
 
   .office__phone {

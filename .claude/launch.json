@@ -10,7 +10,7 @@
     {
       "name": "apsedec-preview",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "preview", "--", "--port", "4322", "--base", "/apsedec-website"],
+      "runtimeArgs": ["run", "preview", "--", "--port", "4322"],
       "port": 4322
     }
   ]

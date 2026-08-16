@@ -44,3 +44,16 @@ export function routePath(pathname: string): string {
 export function absolute(href: string, site: URL | string): string {
   return new URL(path(href), site).href;
 }
+
+/**
+ * `tel:` href for a displayed phone number.
+ *
+ * Numbers are stored and displayed in international format
+ * ("+256 774 505 904"); a dial link wants the same digits with no spaces.
+ * A legacy local number ("0774…") is promoted to +256 so both forms work.
+ */
+export function tel(display: string): string {
+  const digits = display.replace(/[^\d+]/g, '');
+  if (digits.startsWith('+')) return `tel:${digits}`;
+  return `tel:+256${digits.replace(/^0/, '')}`;
+}

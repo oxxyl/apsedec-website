@@ -28,6 +28,11 @@ const relatedTo = (partnerName: string) => {
 };
 
 const groups = [
+  {
+    type: 'founding',
+    title: 'Founding partner',
+    note: 'APSEDEC was established in June 1999 as a project under the Government of Uganda and UNDP Country Cooperation Framework (CCF I). That is a different relationship from funding a programme, and is recorded as such.',
+  },
   { type: 'donor', title: 'Donors and funders', note: 'Institutions that have funded APSEDEC programmes.' },
   { type: 'government', title: 'Government partners', note: 'Ministries and agencies APSEDEC delivers with.' },
   { type: 'implementing', title: 'Implementing partners', note: 'Organisations APSEDEC has delivered alongside, in consortium or joint venture.' },
@@ -55,7 +60,7 @@ const shapeOf = (logo: { width: number; height: number }) => {
   <PageHeader
     title="Who APSEDEC works with"
     eyebrow="§ Partners"
-    lede={`${partners.length} organisations named in the 2026 company profile — funders, government counterparts and delivery partners.`}
+    lede="18+ funders, government counterparts and delivery partners."
   />
 
   {
@@ -115,8 +120,7 @@ const shapeOf = (logo: { width: number; height: number }) => {
                       </ul>
                     ) : (
                       <p class="pt__none mono">
-                        Named as a partner in the 2026 profile. No project in the
-                        record lists them directly.
+                        No project in the record lists them directly.
                       </p>
                     )}
                   </div>

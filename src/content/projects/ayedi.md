@@ -9,6 +9,7 @@ period:
 sector: ["Youth livelihoods","Enterprise development"]
 reach: "900+ youth supported"
 summary: "Soft-skills training, business mentorship and household agribusiness support for out-of-school adolescent youth engaged in or at risk of hazardous labour."
+heroImage: ../../assets/projects/interim-ayedi-bakery-training-paicho.png
 featured: false
 ---
 

@@ -1,45 +1,46 @@
 ---
 import { Image } from 'astro:assets';
-import logo from '../assets/brand/apsedec-logo.png';
+import logo from '../assets/brand/apsedec-logo-colour.png';
 
 /**
  * APSEDEC logo lockup: the emblem beside the organisation's name.
  *
- * The supplied logo is a detailed seal — two banners of curved text, a Uganda
- * silhouette, and a three-scene roundel. At header size its banner text is
- * unreadable, so the emblem carries recognition and the typeset name carries
- * the reading. That is the standard treatment for a seal of this kind.
+ * The supplied artwork is a detailed seal — two banners of curved text, a
+ * Uganda silhouette and a three-scene roundel. At header size the curved
+ * banner text is not legible, so the emblem carries recognition and the
+ * typeset name carries the reading. That is the standard treatment for a seal
+ * of this kind, and it is why the wordmark is set rather than cropped from the
+ * artwork.
  *
- * variant="white" is for green and navy surfaces (BRIEF.md §4.2). The colour
- * emblem is NOT shown there: §4.2 bars the colour logo on green, and no
- * all-white variant of this artwork exists yet — the roundel scenes cannot be
- * flattened to a single colour without losing them. Until one is supplied,
- * green surfaces get the type-only lockup.
- * ▶ Awaiting: all-white logo variant (PENDING_INPUTS.md).
+ * Source is a raster PNG (2209×2080), so it is never rendered above its native
+ * size and is emitted as webp at 2× the display box.
+ * ▶ Awaiting: logo source vector, SVG/AI/EPS (PENDING_INPUTS.md).
+ *
+ * variant="onDark" is the dark-green header and footer: full-colour emblem,
+ * white type. The client confirmed the full-colour emblem — not a mono
+ * version — is the one to use on the dark band.
  */
 interface Props {
-  variant?: 'primary' | 'white';
+  variant?: 'primary' | 'onDark';
   size?: 'sm' | 'md';
 }
 
 const { variant = 'primary', size = 'sm' } = Astro.props;
-const showEmblem = variant === 'primary';
+const box = size === 'md' ? 128 : 96;
 ---
 
 <span class:list={['logo', `logo--${variant}`, `logo--${size}`]}>
-  {
-    showEmblem && (
-      <Image
-        class="logo__emblem"
-        src={logo}
-        alt=""
-        width={size === 'md' ? 128 : 96}
-        format="webp"
-        quality={85}
-        loading="eager"
-      />
-    )
-  }
+  <Image
+    class="logo__emblem"
+    src={logo}
+    alt=""
+    width={box}
+    height={box}
+    densities={[1, 2]}
+    format="webp"
+    quality={88}
+    loading="eager"
+  />
   <span class="logo__type">
     <span class="logo__mark">APSEDEC</span>
     <span class="logo__rule" aria-hidden="true"></span>
@@ -76,7 +77,6 @@ const showEmblem = variant === 'primary';
     font-size: var(--step-2);
   }
 
-  /* The rule is navy — even inside the mark. */
   .logo__rule {
     display: block;
     height: 1px;
@@ -100,13 +100,14 @@ const showEmblem = variant === 'primary';
     color: var(--green-700);
   }
 
-  /* All-white variant: for green and navy surfaces only. */
-  .logo--white .logo__mark,
-  .logo--white .logo__sub {
+  /* Dark green ground: type reverses to white, the rule to translucent white
+     (a navy hairline is invisible on --green-900). */
+  .logo--onDark .logo__mark,
+  .logo--onDark .logo__sub {
     color: #ffffff;
   }
 
-  .logo--white .logo__rule {
+  .logo--onDark .logo__rule {
     background: rgb(255 255 255 / 55%);
   }
 

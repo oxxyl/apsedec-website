@@ -28,24 +28,22 @@ Status key: ☐ outstanding · ☑ resolved from the 2026 profile
 
 ## Blocking launch
 
-- ☑ **APSEDEC logo received** (15 Aug 2026, `APSEDEC Logo/`). Live in the
-  header on every page, paired with the typeset name, and as the browser
-  favicon. The header now sits on the pale green ground site-wide so the
-  colour emblem is usable throughout (client decision, 15 Aug 2026).
-- ☐ **All-white logo variant — still needed** for the two remaining green
-  surfaces: the donate band and the footer. It **cannot be derived by
-  filtering** the supplied artwork — flattening the seal to one colour loses
-  the elephant, the maize, the classroom scene and every banner letter. It
-  needs redrawing as a single-colour mark. Those two places show the type-only
-  lockup until it exists.
-- ☐ **A simplified web mark would help** (optional). The seal is built for
-  print: at 32px in a browser tab its two banners of curved text are
-  illegible. A stripped-back version — the roundel alone, or a monogram —
-  would serve the favicon and small placements far better. The current
-  favicon is generated from the full seal as a stopgap.
-- ☐ **Vector logo (SVG or AI/EPS)** if one exists. The supplied PNG is
-  2209x2080, fine for every current use, but vector would be better for the
-  donation receipt letterhead and any print work.
+- ☑ **APSEDEC logo received** (15 Aug 2026, `APSEDEC Logo/`). The
+  **full-colour** emblem is now live on the dark green header band on every
+  page, in the footer and on the donate band, paired with the typeset name
+  (client decision, 16 Aug 2026).
+- ☐ **Logo source vector (SVG / AI / EPS) — needed.** The supplied artwork is a
+  raster PNG (2209×2080). At header size the seal's two banners of curved text
+  are not legible, which is why the emblem is paired with the typeset lockup
+  rather than carrying the wording itself. A vector source would allow a
+  simplified small-size mark (and a crisp favicon) to be drawn from the same
+  artwork. The client has confirmed they do not hold one — it may need to be
+  redrawn from the print original.
+- ☐ **A simplified web mark would help** (optional, and best drawn from the
+  vector above). The seal is built for print: at 32px in a browser tab its two
+  banners of curved text are illegible. A stripped-back version — the roundel
+  alone, or a monogram — would serve the favicon and small placements far
+  better. The current favicon is generated from the full seal as a stopgap.
 - ☐ **Primary email confirmation.** The 2026 profile prints
   `apsedec2006@yahoo.co.uk` as the organisation's email — not `info@apsedec.org`.
   Confirm which address the site should show, and set up the mailbox.
@@ -101,11 +99,31 @@ Status key: ☐ outstanding · ☑ resolved from the 2026 profile
 
 ## Content
 
-- ☑ **Partner logos — all 12 received and live** (15 Aug 2026): African
+- ☐ **Social account URLs — YouTube, X, LinkedIn and Facebook.** The footer
+  renders no social row at all until these arrive: set each `url` in `SOCIAL`
+  and flip `SOCIAL_LIVE` to true in `src/config.ts`. Icons are already drawn;
+  nothing else needs changing.
+- ☐ **Real photography — the site is running on interim images.** Nine assets
+  were recovered from the 2019/2020 annual report and are placeholders only:
+  partner logos for RTI, TechnoServe, World Education/Bantwana and UKaid
+  (`src/assets/partners/`), and five field photographs used as project
+  thumbnails (`src/assets/projects/interim-*.png`). They are low resolution
+  and are never scaled beyond their native size, so they will look small rather
+  than soft. Replacing a file is the whole fix — no code changes.
+- ☐ **Vacancy postings for /careers/.** The page is driven by the `vacancies`
+  collection: one Markdown file per role in `src/content/vacancies/` with
+  title, closing date, location, description and how to apply. With none open
+  the page says so. A posting disappears on its own once its closing date
+  passes.
+
+- ☑ **Partner logos — 11 client-supplied logos live** (15 Aug 2026): African
   Development Bank, CARE International, FSD Uganda, GOAL, IFAD, MAAIF, MoFPED,
-  NWSC, UNDP, UNHCR, USAID, World Bank. Web-sized copies live in
+  NWSC, UNDP, USAID, World Bank. Web-sized copies live in
   `src/assets/partners/`; the originals you supplied are untouched in
-  `Partner logos/`. No empty slots remain.
+  `Partner logos/`. *(UNHCR removed 16 Aug 2026 on client instruction — see the
+  note in design-notes.md, since the 2026 profile does list it.)* Four further
+  logos — RTI, TechnoServe, World Education/Bantwana, UKaid — are interim
+  low-resolution recoveries; see "Real photography" above.
   *(Removed from the bar on client instruction: Bloomberg Philanthropies,
   UNCDF, Gates Foundation.)*
 - ☐ **Bloomberg Philanthropies and Gates Foundation still appear in project

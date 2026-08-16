@@ -11,6 +11,7 @@ period:
 sector: ["Financial inclusion","Microfinance","Savings groups"]
 reach: "3,486 CSCGs · 59,726 members"
 summary: "Establishment and strengthening of Community Savings and Credit Groups across the Acholi and Lango sub-regions to expand rural financial inclusion."
+heroImage: ../../assets/projects/interim-profira-tot-kitgum.png
 featured: false
 ---
 

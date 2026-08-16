@@ -9,6 +9,7 @@ period:
 sector: ["Agribusiness","Value chains"]
 reach: "200 farmer groups · 6,071 members"
 summary: "Capacity-building of oilseed farmer groups and Secondary Farmer Organisations to raise production and productivity of sunflower, soybean and related oil crops."
+heroImage: ../../assets/projects/interim-vodp2-field-day-alero.png
 featured: false
 ---
 

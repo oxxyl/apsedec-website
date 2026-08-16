@@ -1,0 +1,6 @@
+Vacancy postings live here, one Markdown file each.
+
+Front matter: title, closing (YYYY-MM-DD), location, description, howToApply.
+The Markdown body carries the full role detail — responsibilities, person
+specification, terms. Delete a file, or let `closing` pass, to take a posting
+off the site; /careers/ handles an empty directory on its own.

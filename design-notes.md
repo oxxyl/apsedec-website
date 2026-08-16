@@ -404,3 +404,87 @@ per-page cards are available if the client wants the extra machinery.
 auto-generated humans.txt. Neither serves a donor programme officer.
 
 ---
+
+---
+
+## Phase 1 corrections — sources for every fact added
+
+**Document hierarchy** (set by the client in `docs/README.md`).
+`APSEDEC PROFILE 2026.pdf` is the sole authority for current facts, totals and
+reach figures. `Annual Report 2019 Updated.docx` supplies supplementary
+narrative, activity detail and photographs only — never a headline figure.
+Source documents are internal references: every mention of them was stripped
+from public-facing copy in this pass (partners lede, project records, contact
+and about notes, the district map footnote and the funders FAQ).
+
+Page numbers below are the profile's own printed page numbers.
+
+| Fact now on the site | Source |
+| --- | --- |
+| Established June 1999 as a project under the Government of Uganda and UNDP Country Cooperation Framework (CCF I) | Profile p.1 |
+| Formerly Kitgum Private Sector Promotion Centre | Profile p.1 |
+| Registered June 2004, Company Limited by Guarantee, Reg. No. 62106 | Profile p.1 |
+| Board elected from a membership of 26 private-, public- and civil-society organisations | Profile p.1 |
+| Vision and mission wording | Profile p.1 |
+| Core value *names* (Mutual Respect, Accountability, Team Work, Professionalism, God Fearing) | Profile p.1 |
+| Core value *descriptions* (the sentence under each tile) | Annual report 2019/2020, "Core Values" — supplementary narrative, permitted by the hierarchy |
+| Chair Mr. Ogwang Daniel Abwa; CEO Mr. Nelson Tasenga | Profile p.9 |
+| Organogram tree — every box and every reporting line | Profile p.9 |
+| DREAMS is a CARE International / Gates Foundation programme (MoFPED is a programme partner, not the funder) | Profile p.6 |
+| Head-office and field-office phone numbers | Profile p.1 and p.9 |
+| Practice-area descriptions | Composed from the service and project descriptions on Profile pp.1, 3–8 |
+
+**UNDP recorded as founding partner, not donor.** The profile lists UNDP inside
+its "Major donors & partners" line (p.2), but p.1 states the actual
+relationship: APSEDEC was *established as a project under* the GoU/UNDP CCF I.
+The partners collection grew a fourth type, `founding`, and the partners page
+leads with it. The distinction is the client's, and p.1 supports it.
+
+**UNHCR removed — a client correction that overrides the profile.** UNHCR *is*
+named in the profile's donors and partners line (p.2). The client states this is
+wrong, so the partner record and its logo are deleted and the funders FAQ no
+longer lists it. Recording it here because it is the one place on the site where
+the profile was overruled rather than followed; if the profile is ever treated
+as authoritative again by a future editor, this entry is the reason not to
+re-add UNHCR.
+
+**"18+ funders" is prescribed, not counted.** The partners lede is the client's
+exact wording. It is deliberately not derived from `partners.length` — the
+collection holds 18 records today, but the copy must not silently change when a
+partner file is added or removed.
+
+### Reading the organogram off the PDF
+
+The chart on p.9 is vector-drawn, so the labels came out as text and the
+reporting lines as path segments. The tree was reconstructed from the connector
+geometry rather than from how the boxes line up visually, and the two disagree:
+the support roles (transport & logistics, office assistants, office cleaners,
+compound attendants) sit in the columns under the Microfinance, Business
+Development and M&E specialists, but the actual connector runs from the
+**Admin. Assistant** down to a horizontal bus feeding all four. Reading the
+columns would have invented four reporting lines that do not exist. The
+Advisory Committee joins the CEO laterally, not from above, and is drawn and
+captioned that way.
+
+### Interim imagery
+
+Partner logos for RTI, TechnoServe, World Education/Bantwana and UKaid, and
+five field photographs, were recovered from the 2019/2020 annual report. They
+are **placeholders**: low resolution, and capped at their own natural width so
+none is ever upscaled (`emitWidth()` in `PartnerBar.astro`). A signature image
+and the Uganda coat of arms were found in the same document and deliberately
+not used — a personal signature is not a site asset.
+
+### Departures worth flagging
+
+- **Gradients.** The standing rule is "no gradients and no shadows anywhere".
+  The pattern gallery at `/design/patterns/` is built entirely from gradient
+  syntax used to draw hairlines and dots at a flat tint. Flagged for the client
+  rather than assumed; the rule as written would rule it out.
+- **Header.** The band is now `--green-900` on every page and sticky, so the
+  home hero and the header share a ground and read as one field. The
+  `headerOnBrand` prop is gone — there is no longer a transparent state.
+- **Full-colour emblem on dark green.** At header size the seal's curved banner
+  text is not legible, which is why the emblem is paired with the typeset
+  lockup rather than carrying the wording. A vector source would let the mark
+  be simplified for small sizes; the client does not have one.

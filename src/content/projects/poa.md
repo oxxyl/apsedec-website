@@ -9,6 +9,7 @@ period:
 sector: ["Business development services","Cooperatives","Market linkages"]
 reach: "4 producer organisations"
 summary: "Business Development Services transforming Producer Organisations into viable, sustainable business entities supplying quality coffee, maize and beans."
+heroImage: ../../assets/projects/interim-poa-seed-supply.png
 featured: false
 ---
 

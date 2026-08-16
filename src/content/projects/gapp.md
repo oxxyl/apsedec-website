@@ -9,6 +9,7 @@ period:
 sector: ["Policy advocacy","Institutional capacity building"]
 reach: "15 private sector associations"
 summary: "Enhancing private-sector participation in local governance for improved service delivery across Gulu, Kitgum and Pader."
+heroImage: ../../assets/projects/interim-gapp-dialogue-kitgum.png
 featured: false
 ---
 

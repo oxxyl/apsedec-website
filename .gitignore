@@ -24,3 +24,8 @@ Thumbs.db
 
 APSEDEC Logo/
 Partner logos/
+
+# Source documents. The 2026 profile is small enough to track (it is the
+# authority for site facts); the annual report is a 73MB .docx and is kept
+# out of git — it is a reference, not a build input. Both live in docs/.
+docs/*.docx

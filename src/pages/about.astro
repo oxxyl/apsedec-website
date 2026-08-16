@@ -3,18 +3,42 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHeader from '../components/PageHeader.astro';
 import Placeholder from '../components/Placeholder.astro';
+import TileCards from '../components/TileCards.astro';
+import Organogram from '../components/Organogram.astro';
 import { SITE } from '../config';
 import { path } from '../lib/url';
 
-/* Every fact on this page comes from APSEDEC PROFILE 2026.pdf. Anything the
-   profile does not state renders as a placeholder (BRIEF.md §13). */
+/* Facts on this page are sourced in design-notes.md. Anything unsourced
+   renders as a placeholder (BRIEF.md §13). */
 
+/* Value names from the 2026 profile; the sentence under each is the
+   organisation's own wording from the 2019/2020 annual report. */
 const values = [
-  'Mutual Respect',
-  'Accountability',
-  'Team Work',
-  'Professionalism',
-  'God Fearing',
+  {
+    name: 'Mutual Respect',
+    detail:
+      'As an organisation built on community empowerment, APSEDEC implements its activities with respect for its clients, partners and all who support the drive to reduce poverty.',
+  },
+  {
+    name: 'Accountability',
+    detail:
+      'APSEDEC believes in accounting to all its clients, members, partners and stakeholders in a transparent manner, and in making reports of its activities available to them.',
+  },
+  {
+    name: 'Team Work',
+    detail:
+      'Staff and management believe in achieving the organisation’s goals and objectives by working as a team with partners and clients, without segregation.',
+  },
+  {
+    name: 'Professionalism',
+    detail:
+      'In serving its clients and members, APSEDEC promotes and exhibits a high level of professionalism to attain partner and client satisfaction.',
+  },
+  {
+    name: 'God Fearing',
+    detail:
+      'The APSEDEC team believes in the existence of a supernatural power beyond this natural world, and puts its faith in the almighty God to guide their objectives.',
+  },
 ];
 
 const milestones = [
@@ -44,13 +68,6 @@ const leadership = (await getCollection('team')).sort(
     a.data.name.localeCompare(b.data.name)
 );
 
-const structure = [
-  'Finance & Administration Manager',
-  'Microfinance Specialist',
-  'Business Development Service Manager',
-  'Monitoring & Evaluation Specialist',
-  'Agricultural Extension Team Leader',
-];
 ---
 
 <BaseLayout
@@ -86,8 +103,8 @@ const structure = [
           }
         </div>
         <p class="about__note">
-          <Placeholder label="FULLER HISTORY AND TIMELINE DETAIL" inline /> — the
-          2026 profile records the founding and registration only.
+          <Placeholder label="FULLER HISTORY AND TIMELINE DETAIL" inline /> — APSEDEC
+          to supply the milestones between founding and today.
         </p>
       </div>
     </div>
@@ -120,18 +137,7 @@ const structure = [
       </div>
       <div>
         <h2>Core values</h2>
-        <ol class="ledger about__values">
-          {
-            values.map((value, i) => (
-              <li class="ledger__row about__value">
-                <span class="mono about__value-index">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <span class="about__value-name">{value}</span>
-              </li>
-            ))
-          }
-        </ol>
+        <TileCards items={values} label="Core values" />
       </div>
     </div>
   </section>
@@ -163,10 +169,8 @@ const structure = [
           }
         </div>
 
-        <h3 class="about__subhead">Management team</h3>
-        <ul class="about__structure">
-          {structure.map((role) => <li class="mono">{role}</li>)}
-        </ul>
+        <h3 class="about__subhead">How APSEDEC is structured</h3>
+        <Organogram />
         <p class="about__note">
           Supported by agribusiness trainers, gender practitioners, M&amp;E
           officers and a network of accredited Community-Based Trainers and
@@ -203,14 +207,8 @@ const structure = [
 
 <style>
   .about__timeline,
-  .about__values,
-  .about__people {
+    .about__people {
     margin-block: var(--space-l) var(--space-m);
-  }
-
-  .about__values {
-    list-style: none;
-    padding: 0;
   }
 
   .about__milestone {
@@ -282,23 +280,6 @@ const structure = [
   }
 
   /* --- Values ------------------------------------------------------------- */
-  .about__value {
-    grid-template-columns: 3rem minmax(0, 1fr);
-    align-items: baseline;
-  }
-
-  .about__value-index {
-    color: var(--text-muted);
-    font-size: var(--step--2);
-  }
-
-  .about__value-name {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: var(--step-1);
-    color: var(--green-900);
-  }
-
   /* --- Governance --------------------------------------------------------- */
   .about__lede {
     color: var(--text-muted);
@@ -340,20 +321,6 @@ const structure = [
     color: var(--navy);
     margin-top: var(--space-l);
     margin-bottom: var(--space-2xs);
-  }
-
-  .about__structure {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: var(--space-3xs);
-    font-size: var(--step--1);
-    color: var(--text-muted);
-  }
-
-  .about__structure li::before {
-    content: '— ';
   }
 
   .about__note {

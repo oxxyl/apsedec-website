@@ -23,11 +23,14 @@ export const SITE = {
     'APSEDEC is a national capacity-building and business development organisation headquartered in Kitgum, Uganda, working in agricultural value chains, VSLAs and SACCOs, microfinance and women’s economic empowerment.',
 } as const;
 
+/** Google Maps pin for the Kitgum head office, supplied by the client. */
+export const HQ_MAP_URL = 'https://maps.app.goo.gl/aPPHfeAPHBNEHT4B6';
+
 export const CONTACT = {
   /** ▶ Client to confirm: info@apsedec.org vs info@apsedec.com (see PENDING_INPUTS.md) */
   email: 'info@apsedec.org',
   legacyEmails: ['apsedec2006@yahoo.co.uk', 'apsedec2006@gmail.com'],
-  phones: ['0774505904', '0782525228'],
+  phones: ['+256 774 505 904', '+256 782 525 228'],
   hq: {
     label: 'Head office — Kitgum',
     street: 'Awich Road (opposite Kitgum District Post Office)',
@@ -47,14 +50,14 @@ export const OFFICES = [
     district: 'Kitgum',
     type: 'head',
     address: 'Awich Road (opposite Kitgum District Post Office), P.O. Box 374',
-    phone: '0774505904 / 0782525228',
+    phone: '+256 774 505 904 / +256 782 525 228',
   },
   {
     town: 'Gulu',
     district: 'Gulu',
     type: 'field',
     address: 'Plot 4, Onono Road, Senior Quarters, Gulu City',
-    phone: '0772330292',
+    phone: '+256 772 330 292',
   },
   { town: 'Pader', district: 'Pader', type: 'field' },
   // The 2020 boundaries predate the city split, so the marker sits on Lira district.
@@ -65,23 +68,23 @@ export const OFFICES = [
     district: 'Kasese',
     type: 'field',
     address: 'Plot 57 Kijongo Road, Muyenga, Kasese Municipality',
-    phone: '0772076627',
+    phone: '+256 772 076 627',
   },
   { town: 'Iganga', district: 'Iganga', type: 'field' },
-  { town: 'Mayuge', district: 'Mayuge', type: 'field', phone: '0788234895 / 0701916527' },
+  { town: 'Mayuge', district: 'Mayuge', type: 'field', phone: '+256 788 234 895 / +256 701 916 527' },
   {
     town: 'Buvuma',
     district: 'Buvuma',
     type: 'field',
     address: 'NOPP Hub, Buvuma Town Council',
-    phone: '0778046923',
+    phone: '+256 778 046 923',
   },
   { town: 'Kalangala', district: 'Kalangala', type: 'field' },
   {
     town: 'Kampala',
     district: 'Kampala',
     type: 'liaison',
-    phone: '0774505904 / 0782525228',
+    phone: '+256 774 505 904 / +256 782 525 228',
   },
 ] as const;
 
@@ -100,7 +103,25 @@ export const NAV = [
   { href: '/partners/', label: 'Partners' },
   { href: '/resources/', label: 'Resources' },
   { href: '/news/', label: 'News' },
+  { href: '/careers/', label: 'Careers' },
   { href: '/contact/', label: 'Contact' },
+] as const;
+
+/**
+ * Social accounts.
+ *
+ * SOCIAL_LIVE gates the whole row: while it is false the footer renders no
+ * social links at all, rather than dead icons pointing nowhere. Flip it to
+ * true once every `url` below is filled in.
+ * ▶ Client to supply the four account URLs (PENDING_INPUTS.md).
+ */
+export const SOCIAL_LIVE = false;
+
+export const SOCIAL = [
+  { id: 'youtube', label: 'YouTube', url: '' },
+  { id: 'x', label: 'X', url: '' },
+  { id: 'linkedin', label: 'LinkedIn', url: '' },
+  { id: 'facebook', label: 'Facebook', url: '' },
 ] as const;
 
 /**

@@ -1,0 +1,472 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  buildPatterns,
+  patternCss,
+  patternStyle,
+  DEFAULTS,
+  SWATCHES,
+  SCALE_RANGE,
+} from '../../lib/patterns';
+
+/**
+ * Background pattern gallery — an internal design reference, not a public
+ * page. Excluded from NAV and from sitemap.xml, and served noindex.
+ *
+ * Implements "Green Background Patterns.dc.html" (claude.ai/design → Company
+ * profile redesign). Two deliberate departures from that file, both to hold
+ * the standing rules in design-notes.md:
+ *
+ *   - The design loads Spectral / Archivo / Spline Sans Mono from Google
+ *     Fonts. The site self-hosts and budgets its fonts, so this maps onto
+ *     Zilla Slab / Carlito / IBM Plex Mono — no external request is added.
+ *   - Tile hover in the design is a box-shadow lift. "No shadows anywhere":
+ *     hover is a navy rule instead.
+ *
+ * Selection is plain CSS — a radio inside each tile, matched with :has() — so
+ * the gallery works with JavaScript off. Script only adds the palette and
+ * scale controls, which genuinely need to recompute all sixteen tiles.
+ */
+
+const patterns = buildPatterns();
+const soft = patterns.filter((pt) => pt.group === 'soft');
+const line = patterns.filter((pt) => pt.group === 'line');
+
+/* One rule set per tile, keyed on which radio is checked. Generated here
+   because the pattern definitions live in TS, not in the stylesheet. */
+const selectionCss = patterns
+  .map(
+    (pt, i) => `.pt:has(#pt-${i}:checked) [data-hero]{${patternStyle(pt)}}
+.pt:has(#pt-${i}:checked) [data-pick="${i}"]{display:inline}
+.pt:has(#pt-${i}:checked) [data-css="${i}"]{display:block}
+.pt:has(#pt-${i}:checked) [data-tile="${i}"]{border-color:var(--navy);outline:2px solid var(--navy);outline-offset:-3px}`
+  )
+  .join('\n');
+---
+
+<BaseLayout
+  title="Background patterns"
+  description="Sixteen tileable CSS background patterns for APSEDEC surfaces."
+  noindex
+>
+  <div class="pt">
+    <section class="section--tight">
+      <div class="container">
+        <p class="label">Website background patterns</p>
+        <h1 class="pt__title">Sixteen light-green tiles.</h1>
+        <p class="pt__lede">
+          Eight soft textures and eight intricate line patterns — all pure CSS,
+          seamlessly tileable, and tuned to sit quietly behind text. Use the
+          tweaks to shift the base tint, line colours and scale, then copy the
+          CSS from any tile.
+        </p>
+      </div>
+    </section>
+
+    <section class="section--tight">
+      <div class="container">
+        <form class="pt__tweaks" data-tweaks hidden>
+          {
+            (
+              [
+                ['base', 'Base tint'],
+                ['accent', 'Line colour'],
+                ['ink', 'Second line'],
+              ] as const
+            ).map(([key, legend]) => (
+              <fieldset class="pt__field">
+                <legend class="label">{legend}</legend>
+                <div class="pt__swatches">
+                  {SWATCHES[key].map((sw) => (
+                    <label class="pt__swatch" style={`--sw:${sw.value}`}>
+                      <input
+                        type="radio"
+                        name={key}
+                        value={sw.value}
+                        checked={sw.value === DEFAULTS[key]}
+                        class="visually-hidden"
+                      />
+                      <span class="pt__chip" aria-hidden="true" />
+                      <span class="pt__swatch-label mono">{sw.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            ))
+          }
+
+          <fieldset class="pt__field">
+            <legend class="label">
+              Scale <span class="num" data-scale-out>{DEFAULTS.scale}px</span>
+            </legend>
+            <input
+              type="range"
+              name="scale"
+              min={SCALE_RANGE.min}
+              max={SCALE_RANGE.max}
+              step={SCALE_RANGE.step}
+              value={DEFAULTS.scale}
+              class="pt__range"
+              aria-label="Pattern scale in pixels"
+            />
+          </fieldset>
+        </form>
+      </div>
+    </section>
+
+    <section class="section--tight">
+      <div class="container">
+        <p class="label">Live preview — selected pattern behind real content</p>
+        <div class="pt__hero" data-hero style={patternStyle(patterns[0])}>
+          <div class="pt__hero-inner">
+            <p class="label pt__hero-name">
+              {patterns.map((pt, i) => <span data-pick={String(i)}>{pt.name}</span>)}
+            </p>
+            <h2 class="pt__hero-title">Legible over every tile.</h2>
+            <p class="pt__hero-copy">
+              Contrast stays above 4.5:1 for body copy at these tints, so the
+              pattern reads as texture rather than noise.
+            </p>
+            <div class="pt__hero-actions">
+              <span class="btn btn--green">Primary action</span>
+              <span class="btn btn--paper">Secondary</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section--tight">
+      <div class="container">
+        <p class="label">Soft textures — choose any tile to preview it above</p>
+        <ul class="pt__grid">
+          {
+            soft.map((pt, i) => (
+              <li class="pt__cell">
+                <label class="pt__tile">
+                  <input
+                    class="visually-hidden"
+                    type="radio"
+                    name="pattern"
+                    id={`pt-${i}`}
+                    checked={i === 0}
+                  />
+                  <span class="pt__area" style={patternStyle(pt)} data-tile={String(i)} />
+                  <span class="visually-hidden">Preview {pt.name}</span>
+                </label>
+                <p class="pt__name">{pt.name}</p>
+                <p class="pt__note mono">{pt.note}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+
+    <section class="section--tight">
+      <div class="container">
+        <p class="label">Intricate line work — layered 1px rules</p>
+        <p class="pt__lede pt__lede--sub">
+          Each of these stacks two or three hairline gradients at different
+          angles and offsets, so the texture stays crisp and detailed without
+          lifting off the page.
+        </p>
+        <ul class="pt__grid">
+          {
+            line.map((pt, i) => (
+              <li class="pt__cell">
+                <label class="pt__tile">
+                  <input
+                    class="visually-hidden"
+                    type="radio"
+                    name="pattern"
+                    id={`pt-${soft.length + i}`}
+                  />
+                  <span
+                    class="pt__area"
+                    style={patternStyle(pt)}
+                    data-tile={String(soft.length + i)}
+                  />
+                  <span class="visually-hidden">Preview {pt.name}</span>
+                </label>
+                <p class="pt__name">{pt.name}</p>
+                <p class="pt__note mono">{pt.note}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+
+    <section class="section--tight">
+      <div class="container">
+        <p class="label">CSS for the selected tile</p>
+        {patterns.map((pt, i) => <pre class="pt__code mono" data-css={String(i)}>{patternCss(pt)}</pre>)}
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style is:global set:html={selectionCss}></style>
+
+<style>
+  /* Only the selected tile's name and code block show; the generated rules
+     above re-display the one whose radio is checked. */
+  .pt [data-pick],
+  .pt [data-css] {
+    display: none;
+  }
+
+  .pt__title {
+    font-family: var(--font-display);
+    font-size: var(--step-4);
+    line-height: var(--leading-tight);
+    color: var(--heading);
+    margin: 0 0 var(--space-xs);
+  }
+
+  .pt__lede {
+    max-width: 58ch;
+    margin: 0;
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+
+  .pt__lede--sub {
+    margin-block: var(--space-2xs) var(--space-s);
+    font-size: var(--step--1);
+  }
+
+  /* --- Tweaks ------------------------------------------------------------ */
+  .pt__tweaks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-l);
+    border-top: var(--hairline);
+    border-bottom: var(--hairline);
+    padding-block: var(--space-s);
+  }
+
+  .pt__field {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-inline-size: 0;
+  }
+
+  .pt__field legend {
+    padding: 0;
+    margin-bottom: var(--space-2xs);
+  }
+
+  .pt__swatches {
+    display: flex;
+    gap: var(--space-xs);
+  }
+
+  .pt__swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3xs);
+    cursor: pointer;
+  }
+
+  .pt__chip {
+    display: block;
+    width: 30px;
+    height: 22px;
+    background: var(--sw);
+    border: var(--hairline-faint);
+  }
+
+  .pt__swatch:has(:checked) .pt__chip {
+    border-color: var(--navy);
+    outline: 2px solid var(--navy);
+    outline-offset: 2px;
+  }
+
+  .pt__swatch:has(:focus-visible) .pt__chip {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  .pt__swatch-label {
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .pt__range {
+    inline-size: 190px;
+    accent-color: var(--green-600);
+  }
+
+  /* --- Live preview ------------------------------------------------------ */
+  .pt__hero {
+    border: var(--hairline-faint);
+    display: flex;
+    align-items: center;
+    padding: var(--space-xl) var(--space-l);
+    margin-top: var(--space-2xs);
+  }
+
+  .pt__hero-inner {
+    max-width: 52ch;
+  }
+
+  .pt__hero-title {
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    line-height: var(--leading-snug);
+    color: var(--heading);
+    margin: var(--space-2xs) 0 var(--space-xs);
+    text-wrap: balance;
+  }
+
+  .pt__hero-copy {
+    margin: 0 0 var(--space-s);
+    color: var(--text);
+    text-wrap: pretty;
+  }
+
+  .pt__hero-actions {
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+  }
+
+  /* --- Tile grids -------------------------------------------------------- */
+  .pt__grid {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-2xs) 0 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-s);
+  }
+
+  .pt__cell {
+    margin: 0;
+  }
+
+  .pt__tile {
+    display: block;
+    cursor: pointer;
+  }
+
+  .pt__area {
+    display: block;
+    height: 150px;
+    border: var(--hairline-faint);
+  }
+
+  /* The design lifts the tile on hover with a shadow. No shadows anywhere:
+     the rule goes navy instead. */
+  .pt__tile:hover .pt__area {
+    border-color: var(--navy);
+  }
+
+  .pt__tile:has(:focus-visible) .pt__area {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  .pt__name {
+    margin: var(--space-2xs) 0 0;
+    font-weight: 700;
+    font-size: var(--step--1);
+    color: var(--heading);
+  }
+
+  .pt__note {
+    margin: 0;
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .pt__code {
+    background: var(--green-900);
+    color: var(--green-100);
+    padding: var(--space-s);
+    font-size: var(--step--1);
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: var(--space-2xs) 0 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  @media (max-width: 60rem) {
+    .pt__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .pt__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .pt__hero {
+      padding: var(--space-l) var(--space-s);
+    }
+  }
+</style>
+
+<script>
+  import {
+    buildPatterns,
+    patternCss,
+    patternStyle,
+    DEFAULTS,
+    type PatternOptions,
+  } from '../../lib/patterns';
+
+  const root = document.querySelector<HTMLElement>('.pt');
+
+  if (root) {
+    const tweaks = root.querySelector<HTMLFormElement>('[data-tweaks]')!;
+    const hero = root.querySelector<HTMLElement>('[data-hero]')!;
+    const scaleOut = root.querySelector<HTMLElement>('[data-scale-out]')!;
+    const radios = [...root.querySelectorAll<HTMLInputElement>('input[name="pattern"]')];
+
+    // The controls recompute all sixteen tiles, which needs script. They stay
+    // hidden until it runs, so nothing dead is ever on the page.
+    tweaks.hidden = false;
+
+    const options: PatternOptions = { ...DEFAULTS };
+
+    /** Repaint every tile, the hero and every code block from `options`. */
+    const repaint = () => {
+      const patterns = buildPatterns(options);
+      const sel = Math.max(0, radios.findIndex((r) => r.checked));
+
+      patterns.forEach((pt, i) => {
+        const tile = root.querySelector<HTMLElement>(`[data-tile="${i}"]`);
+        if (tile) tile.style.cssText = patternStyle(pt);
+
+        const code = root.querySelector<HTMLElement>(`[data-css="${i}"]`);
+        if (code) code.textContent = patternCss(pt);
+      });
+
+      hero.style.cssText = patternStyle(patterns[sel]);
+    };
+
+    for (const radio of radios) {
+      radio.addEventListener('change', repaint);
+    }
+
+    tweaks.addEventListener('input', (event) => {
+      const target = event.target as HTMLInputElement;
+
+      if (target.name === 'scale') {
+        options.scale = Number(target.value);
+        scaleOut.textContent = `${target.value}px`;
+      } else if (target.name === 'base' || target.name === 'accent' || target.name === 'ink') {
+        options[target.name] = target.value;
+      }
+
+      repaint();
+    });
+  }
+</script>
