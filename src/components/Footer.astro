@@ -2,6 +2,7 @@
 import Logo from './Logo.astro';
 import Placeholder from './Placeholder.astro';
 import { SITE, CONTACT, NAV, OFFICES } from '../config';
+import { path } from '../lib/url';
 
 const year = new Date().getFullYear();
 ---
@@ -45,8 +46,8 @@ const year = new Date().getFullYear();
         <section class="site-footer__col">
           <h2 class="label">Site</h2>
           <ul class="site-footer__list">
-            {NAV.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
-            <li><a href="/donate/">Donate</a></li>
+            {NAV.map((item) => <li><a href={path(item.href)}>{item.label}</a></li>)}
+            <li><a href={path('/donate/')}>Donate</a></li>
           </ul>
         </section>
       </div>

@@ -1,6 +1,7 @@
 ---
 import Logo from './Logo.astro';
 import { NAV } from '../config';
+import { path, routePath } from '../lib/url';
 
 interface Props {
   /** Home sits over the green hero panel: transparent header, white logo. */
@@ -8,12 +9,13 @@ interface Props {
 }
 
 const { onBrand = false } = Astro.props;
-const path = Astro.url.pathname;
+// Compare against NAV hrefs, which are authored without the deploy base.
+const current = routePath(Astro.url.pathname);
 ---
 
 <header class:list={['site-header', onBrand && 'site-header--brand on-brand']}>
   <div class="container site-header__inner">
-    <a href="/" class="site-header__logo" aria-label="APSEDEC — home">
+    <a href={path('/')} class="site-header__logo" aria-label="APSEDEC — home">
       <Logo variant={onBrand ? 'white' : 'primary'} />
     </a>
 
@@ -32,9 +34,9 @@ const path = Astro.url.pathname;
           NAV.map((item) => (
             <li>
               <a
-                href={item.href}
+                href={path(item.href)}
                 class="site-nav__link"
-                aria-current={path === item.href ? 'page' : undefined}
+                aria-current={current === item.href ? 'page' : undefined}
               >
                 {item.label}
               </a>
@@ -42,7 +44,7 @@ const path = Astro.url.pathname;
           ))
         }
         <li class="site-nav__cta">
-          <a href="/donate/" class:list={['btn', onBrand ? 'btn--paper' : 'btn--green']}>
+          <a href={path('/donate/')} class:list={['btn', onBrand ? 'btn--paper' : 'btn--green']}>
             Donate
           </a>
         </li>

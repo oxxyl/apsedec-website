@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Placeholder from '../../components/Placeholder.astro';
+import { path } from '../../lib/url';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
@@ -137,7 +138,7 @@ const related = all
             <div class="ledger">
               {related.map((p) => (
                 <article class="ledger__row rec__related">
-                  <a href={`/projects/${p.id}/`} class="rec__related-link">
+                  <a href={path(`/projects/${p.id}/`)} class="rec__related-link">
                     {p.data.title}
                   </a>
                   <span class="mono rec__related-donor">{p.data.donor.join(' · ')}</span>
@@ -152,7 +153,7 @@ const related = all
 
   <section class="section--tight">
     <div class="container">
-      <p class="rec__back mono"><a href="/projects/">← All projects</a></p>
+      <p class="rec__back mono"><a href={path('/projects/')}>← All projects</a></p>
     </div>
   </section>
 </BaseLayout>

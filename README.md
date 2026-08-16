@@ -171,8 +171,10 @@ To remove a partner from the bar entirely, delete its file from
 
 ## Deployment & DNS
 
-Every push to `main` triggers `.github/workflows/deploy.yml`, which builds with
-the official `withastro/action` and publishes to GitHub Pages.
+Every push to `main` triggers `.github/workflows/deploy.yml`, which builds the
+site and publishes it to GitHub Pages. The build reads its target origin and
+sub-path from the repository's Pages settings — see **How the deploy target is
+decided** below before changing anything about URLs.
 
 **One-time setup in the repo:** Settings → Pages → Source → **GitHub Actions**.
 
@@ -286,21 +288,67 @@ categories**; the site currently scores 97–100 across every page.
 > One expected exception: `/donate/thank-you/` scores ~69 for SEO because it is
 > deliberately `noindex`. That is correct — a receipt should not be indexed.
 
+### How the deploy target is decided
+
+The site has to work at two addresses: `oxxyl.github.io/apsedec-website/` while
+it is being reviewed, and `apsedec.com` at launch. Those need a different
+`site` and `base`, and a build made for one is broken at the other — assets
+resolve to the wrong root and the page arrives unstyled.
+
+Nothing is hardcoded for either. `astro.config.mjs` reads two environment
+variables:
+
+| Variable    | Meaning                                      | Default              |
+| ----------- | -------------------------------------------- | -------------------- |
+| `SITE_URL`  | absolute origin the site is served from      | `https://apsedec.com`|
+| `BASE_PATH` | sub-path it is mounted at                    | `/`                  |
+
+`.github/workflows/deploy.yml` fills both from `actions/configure-pages`, which
+reports the repository's **live Pages settings**. So the project URL is used
+today, and the moment a custom domain is set in Settings → Pages, the next
+build switches origin and drops the sub-path by itself.
+
+Hand-written links and `public/` references do not get rewritten by Astro —
+only its own bundled assets do. Everything else goes through `path()` in
+[`src/lib/url.ts`](src/lib/url.ts). **Any new internal link must use it:**
+
+```astro
+<a href={path('/projects/')}>Projects</a>
+```
+
+There is no `public/CNAME`. The custom domain lives in Pages settings instead,
+which is the value `configure-pages` reads; a CNAME file would additionally
+force `oxxyl.github.io/apsedec-website` to redirect to a domain that does not
+resolve yet, breaking the review URL.
+
+`robots.txt` is generated ([`src/pages/robots.txt.ts`](src/pages/robots.txt.ts))
+rather than static, so its `Sitemap:` line follows the target. A non-production
+build serves `Disallow: /` — a crawlable second copy of the whole site on
+github.io would compete with apsedec.com in search.
+
 ### Custom-domain cutover checklist
 
-1. `public/CNAME` already contains `apsedec.com` — leave it.
-2. Create the A (and AAAA) records above; wait for propagation (up to 24h).
-3. Repo → Settings → Pages → Custom domain → `apsedec.com` → Save.
+1. Create the A (and AAAA) records above; wait for propagation (up to 24h).
+2. Repo → Settings → Pages → Custom domain → `apsedec.com` → Save.
+3. Re-run the deploy workflow. It picks up the new origin on its own — no code
+   change, no edit to `astro.config.mjs`.
 4. Wait for the certificate, then tick **Enforce HTTPS**.
 5. Confirm `https://www.apsedec.com` redirects to the apex.
-6. Send a test email to `info@apsedec.org` to confirm mail still arrives.
+6. Confirm `https://apsedec.com/robots.txt` now reads `Allow: /`.
+7. Send a test email to `info@apsedec.org` to confirm mail still arrives.
 
-> **Previewing before DNS is ready.** Because `public/CNAME` is present, GitHub
-> Pages redirects `oxxyl.github.io/apsedec-website` to `apsedec.com`, which
-> will not resolve until the records above exist. To get a working preview URL
-> first, delete `public/CNAME` and set `site: 'https://oxxyl.github.io'` plus
-> `base: '/apsedec-website'` in `astro.config.mjs` — then revert both at
-> cutover. See the comment at the top of `astro.config.mjs`.
+To build either target locally:
+
+```bash
+npm run build
+```
+
+```bash
+BASE_PATH=/apsedec-website SITE_URL=https://oxxyl.github.io npm run build
+```
+
+The first is the production build. The second reproduces the Pages build; serve
+it with `npm run preview -- --base /apsedec-website`.
 
 ---
 
@@ -313,14 +361,15 @@ src/
   content/       Markdown content collections (projects, partners, …)
   data/          uganda-districts.ts — GENERATED, do not hand-edit
   layouts/       BaseLayout — <head>, skip link, header/footer shell
-  pages/         One file per URL
+  lib/           url.ts — path()/absolute(), the deploy-base helpers
+  pages/         One file per URL (plus sitemap.xml, robots.txt, faq.json)
   styles/        tokens.css (the design system), base.css, fonts.css
   config.ts      Org facts, nav, donation flag, third-party keys
 scripts/
   build-map.mjs  Regenerates the district geometry (run by hand, rarely)
 public/
   fonts/         Self-hosted latin-subset woff2
-  CNAME          apsedec.com
+  icons/, og/    Favicons and the share card
 ```
 
 ### Map boundaries

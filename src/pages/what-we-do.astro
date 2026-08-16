@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHeader from '../components/PageHeader.astro';
+import { path } from '../lib/url';
 
 /* The four service lines are quoted from the profile's "What We Do"; the
    seven practice areas are the disciplines listed on its cover. */
@@ -142,7 +143,7 @@ const valueChains = [
         </ul>
 
         <p class="wwd__note">
-          <a href="/projects/">See every project →</a>
+          <a href={path('/projects/')}>See every project →</a>
         </p>
       </div>
     </div>

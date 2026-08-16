@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHeader from '../components/PageHeader.astro';
+import { path } from '../lib/url';
 
 const partners = (await getCollection('partners')).sort((a, b) =>
   a.data.name.localeCompare(b.data.name)
@@ -108,7 +109,7 @@ const shapeOf = (logo: { width: number; height: number }) => {
                       <ul class="pt__projects">
                         {linked.map((p) => (
                           <li>
-                            <a href={`/projects/${p.id}/`}>{p.data.title}</a>
+                            <a href={path(`/projects/${p.id}/`)}>{p.data.title}</a>
                           </li>
                         ))}
                       </ul>

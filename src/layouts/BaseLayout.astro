@@ -3,6 +3,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Assistant from '../components/Assistant.astro';
 import { SITE } from '../config';
+import { path, routePath, absolute } from '../lib/url';
 import '../styles/fonts.css';
 import '../styles/tokens.css';
 import '../styles/base.css';
@@ -24,7 +25,7 @@ const {
 } = Astro.props;
 
 const pageTitle = title === SITE.name ? `${SITE.name} — ${SITE.legalName}` : `${title} — ${SITE.name}`;
-const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url);
+const canonical = absolute(routePath(Astro.url.pathname), Astro.site ?? SITE.url);
 ---
 
 <!doctype html>
@@ -43,7 +44,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url);
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta property="og:image" content={new URL('/og/apsedec.png', Astro.site ?? SITE.url)} />
+    <meta property="og:image" content={absolute('/og/apsedec.png', Astro.site ?? SITE.url)} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={`${SITE.name} — ${SITE.legalName}`} />
@@ -53,27 +54,27 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url);
 
     {/* Generated from the APSEDEC seal. At 32px the banner text is illegible —
         a simplified mark would serve the tab better (PENDING_INPUTS.md). */}
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href={path('/icons/icon-32.png')} />
+    <link rel="apple-touch-icon" sizes="180x180" href={path('/icons/icon-180.png')} />
 
     {/* Critical faces only — the other three swap in when used. */}
     <link
       rel="preload"
-      href="/fonts/carlito-400.woff2"
+      href={path('/fonts/carlito-400.woff2')}
       as="font"
       type="font/woff2"
       crossorigin
     />
     <link
       rel="preload"
-      href="/fonts/zillaslab-600.woff2"
+      href={path('/fonts/zillaslab-600.woff2')}
       as="font"
       type="font/woff2"
       crossorigin
     />
     <link
       rel="preload"
-      href="/fonts/plexmono-400.woff2"
+      href={path('/fonts/plexmono-400.woff2')}
       as="font"
       type="font/woff2"
       crossorigin

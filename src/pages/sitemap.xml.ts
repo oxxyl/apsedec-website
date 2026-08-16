@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { SITE } from '../config';
+import { absolute } from '../lib/url';
 
 /**
  * sitemap.xml, hand-rolled rather than pulling in @astrojs/sitemap — the brief
@@ -8,7 +9,7 @@ import { SITE } from '../config';
  *
  * /donate/thank-you/ is deliberately excluded: it is noindex.
  */
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ site }) => {
   const projects = await getCollection('projects');
   const news = await getCollection('news');
 
@@ -44,7 +45,7 @@ export const GET: APIRoute = async () => {
 ${urls
   .map(
     (url) => `  <url>
-    <loc>${SITE.url}${url.path}</loc>
+    <loc>${absolute(url.path, site ?? SITE.url)}</loc>
     <changefreq>${url.changefreq}</changefreq>
     <priority>${url.priority}</priority>
   </url>`

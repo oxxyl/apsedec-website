@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Logo from '../../components/Logo.astro';
 import { CONTACT, SITE } from '../../config';
+import { path } from '../../lib/url';
 
 /**
  * Donation receipt (BRIEF.md §8.2).
@@ -101,7 +102,7 @@ import { CONTACT, SITE } from '../../config';
 
           <div class="ty__actions">
             <button type="button" class="btn btn--green" data-print>Print this receipt</button>
-            <a class="ty__link" href="/">Back to the home page</a>
+            <a class="ty__link" href={path('/')}>Back to the home page</a>
           </div>
         </div>
       </article>
@@ -113,8 +114,8 @@ import { CONTACT, SITE } from '../../config';
           or use bank transfer or mobile money instead.
         </p>
         <div class="ty__actions">
-          <a class="btn btn--green" href="/donate/">Try again</a>
-          <a class="ty__link" href="/donate/#direct">Bank and mobile money details</a>
+          <a class="btn btn--green" href={path('/donate/')}>Try again</a>
+          <a class="ty__link" href={path('/donate/#direct')}>Bank and mobile money details</a>
         </div>
         <p class="ty__note">
           If you think you were charged, contact APSEDEC on{' '}
@@ -130,8 +131,8 @@ import { CONTACT, SITE } from '../../config';
           payment provider.
         </p>
         <div class="ty__actions">
-          <a class="btn btn--green" href="/donate/">Go to the donate page</a>
-          <a class="ty__link" href="/projects/">See the work</a>
+          <a class="btn btn--green" href={path('/donate/')}>Go to the donate page</a>
+          <a class="ty__link" href={path('/projects/')}>See the work</a>
         </div>
       </article>
     </div>

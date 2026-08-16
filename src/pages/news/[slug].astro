@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { path } from '../../lib/url';
 
 /* No news entries exist yet, so this route builds zero pages. It is here so
    that adding one Markdown file is all that is needed to publish. */
@@ -46,7 +47,7 @@ const fmt = (d: Date) =>
 
   <section class="section--tight">
     <div class="container">
-      <p class="post__back mono"><a href="/news/">← All news</a></p>
+      <p class="post__back mono"><a href={path('/news/')}>← All news</a></p>
     </div>
   </section>
 </BaseLayout>

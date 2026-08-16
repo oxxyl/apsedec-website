@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHeader from '../components/PageHeader.astro';
 import Placeholder from '../components/Placeholder.astro';
 import { CONTACT, SITE, DONATIONS_LIVE, FLW_PUBLIC_KEY } from '../config';
+import { path } from '../lib/url';
 
 /**
  * Donation page (BRIEF.md §8.1).
@@ -212,12 +213,12 @@ const fmt = (currency: 'UGX' | 'USD', amount: number) =>
           APSEDEC is a company limited by guarantee, Registration No.{' '}
           {SITE.registrationNo}, governed by a Board of Directors elected from
           its 26 member organisations. Its programme record is published in full
-          on the <a href="/projects/">projects page</a>.
+          on the <a href={path('/projects/')}>projects page</a>.
         </p>
         <p class="dn__note">
           <Placeholder label="STATEMENT ON HOW DONATED FUNDS ARE ALLOCATED" inline /> — APSEDEC
           to supply. Annual reports and financial statements will appear on the{' '}
-          <a href="/resources/">resources page</a>.
+          <a href={path('/resources/')}>resources page</a>.
         </p>
       </div>
     </div>

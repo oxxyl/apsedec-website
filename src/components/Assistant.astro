@@ -313,6 +313,7 @@
 
 <script>
   import type { Entry, Match } from '../scripts/faq-search';
+  import { path as withBase, routePath } from '../lib/url';
 
   const root = document.querySelector<HTMLElement>('[data-assistant]');
 
@@ -334,7 +335,7 @@
       if (!loading) {
         loading = (async () => {
           const [data, mod] = await Promise.all([
-            fetch('/faq.json').then((r) => r.json()),
+            fetch(withBase('/faq.json')).then((r) => r.json()),
             import('../scripts/faq-search'),
           ]);
           bank = data as Entry[];
@@ -347,10 +348,12 @@
 
     const renderChips = () => {
       if (!bank || chips.children.length) return;
-      const path = window.location.pathname;
+      // `page` in the bank is authored without the deploy base, so compare
+      // against the de-based route rather than the raw location.
+      const here = routePath(window.location.pathname);
       // Prefer entries scoped to this page, then fill from the top of the bank.
-      const scoped = bank.filter((e) => e.page?.includes(path));
-      const rest = bank.filter((e) => !e.page?.includes(path));
+      const scoped = bank.filter((e) => e.page?.includes(here));
+      const rest = bank.filter((e) => !e.page?.includes(here));
       for (const entry of [...scoped, ...rest].slice(0, 4)) {
         const li = document.createElement('li');
         const button = document.createElement('button');
@@ -376,10 +379,10 @@
           document.createTextNode("I don't have that one yet. You can "),
         );
         const contact = document.createElement('a');
-        contact.href = '/contact/';
+        contact.href = withBase('/contact/');
         contact.textContent = 'contact APSEDEC directly';
         const resources = document.createElement('a');
-        resources.href = '/resources/';
+        resources.href = withBase('/resources/');
         resources.textContent = 'the resources page';
         p.append(contact, document.createTextNode(', or try '), resources, document.createTextNode('.'));
         results.append(p);

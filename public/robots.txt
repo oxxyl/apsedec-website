@@ -1,8 +1,0 @@
-User-agent: *
-Allow: /
-
-# The donation receipt reflects payment-provider parameters and carries a
-# noindex tag; keep crawlers off it entirely.
-Disallow: /donate/thank-you/
-
-Sitemap: https://apsedec.com/sitemap.xml
