@@ -52,12 +52,15 @@ const partners = defineCollection({
       logo: image().optional(), // optional until the client supplies logo files
       url: z.string().url().optional(),
       /**
-     * `founding` is UNDP alone: APSEDEC was established in June 1999 as a
-     * project under the Government of Uganda / UNDP Country Cooperation
-     * Framework (CCF I), which is a different relationship from funding a
-     * programme, and is presented separately.
-     */
-    type: z.enum(['founding', 'donor', 'implementing', 'government']),
+       * Every partner sits in one of these three lists; there is no separate
+       * founding category. UNDP's founding relationship is a fact about
+       * APSEDEC's history, so it is told in the About timeline rather than by
+       * setting UNDP apart from the organisations it sits alongside.
+       *
+       * Keep this enum in step with the groups rendered on partners.astro — a
+       * value with no matching group would drop the entry off the page.
+       */
+      type: z.enum(['donor', 'implementing', 'government']),
     }),
 });
 

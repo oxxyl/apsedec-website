@@ -47,8 +47,29 @@ serif", a tell of exactly the vibe-coded output the client rejected; Zilla
 Slab's flat engineered slabs read stamped rather than editorial. (2) Floating
 stat cards with drop shadows — replaced by ruled ledger rows. (3) A gradient
 green hero — one flat field instead. Standing rule for the whole site: **no
-gradients and no shadows anywhere**; depth comes only from navy rules and flat
-colour, which is what makes it read as printed stock rather than UI chrome.
+gradients anywhere, and no shadows except on interactive cards** (see below);
+depth comes from navy rules and flat colour, which is what makes it read as
+printed stock rather than UI chrome.
+
+**Amended: shadows on interactive cards.** (Client instruction, superseding the
+blanket ban above — amended, not lifted.) A shadow is permitted **only** on a
+card that lifts or animates on hover or focus: the practice-area tiles, the
+core-values tiles, and the project cards. The shadow must be a **single soft
+shadow that appears on interaction**, never a permanent one at rest.
+
+Shadows remain **banned** on static containers, section blocks, ledger rows,
+the impact strip, the map card, partner slots, and anything else that does not
+respond to the pointer or the keyboard. The original rule existed to stay out
+of generic SaaS territory, and a resting shadow on every card is exactly that
+territory — so the test for any new shadow is: *does this element do something
+when you touch it?* If not, it does not get one.
+
+One token, `--lift-shadow`, carries the whole allowance, so the permitted set
+is greppable and cannot spread by copy-paste. Focus produces the same visual
+state as hover — a keyboard user sees the lift, not just the outline — and
+under `prefers-reduced-motion: reduce` the movement and the bounce are dropped
+while the shadow and the ground change still fire, so the state change stays
+legible without motion.
 
 **Open deviation.** On `--green-900` surfaces a navy hairline is effectively
 invisible (~1.3:1). Rules on deep-green grounds use `--rule-on-green`
@@ -477,12 +498,15 @@ not used — a personal signature is not a site asset.
 
 ### Departures worth flagging
 
-- **Gradients.** The standing rule is "no gradients and no shadows anywhere".
-  The pattern gallery at `/design/patterns/` is built entirely from gradient
-  syntax used to draw hairlines and dots at a flat tint. Flagged for the client
-  rather than assumed; the rule as written would rule it out.
-- **Header.** The band is now `--green-900` on every page and sticky, so the
-  home hero and the header share a ground and read as one field. The
+- **Gradients.** The standing rule is "no gradients anywhere" — unchanged by
+  the shadow amendment. The pattern gallery at `/design/patterns/` is built
+  entirely from gradient syntax used to draw hairlines and dots at a flat tint.
+  Flagged for the client rather than assumed; the rule as written would rule it
+  out.
+- **Header.** The band is sticky on every page and sits on `--green-950`, one
+  step below the `--green-900` used by the hero and the page headers, so it
+  reads as a layer above the page rather than continuous with it (1.21:1
+  against green-900 — visible as a change of plane, short of a stripe). The
   `headerOnBrand` prop is gone — there is no longer a transparent state.
 - **Full-colour emblem on dark green.** At header size the seal's curved banner
   text is not legible, which is why the emblem is paired with the typeset

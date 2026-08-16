@@ -10,6 +10,11 @@
 :root {
   /* --- Green ramp: derived from the brand base #1B7340 --------------------
      deep forest -> pale leaf. Green surfaces should dominate every page. */
+  /* One step below green-900, for the sticky header band only. The header has
+     to read as a layer sitting ABOVE the page rather than continuous with the
+     hero, and at 1.21:1 against green-900 the step is legible without becoming
+     a stripe. White text on it is 15.5:1, --green-200 is 8.9:1. */
+  --green-950: #082a17; /* sticky header band */
   --green-900: #0c3a20; /* hero panel, footer ground */
   --green-800: #0f4728;
   --green-700: #12522e; /* donate band, hover on green surfaces */
@@ -104,13 +109,28 @@
   --hairline: 1px solid var(--navy);
   --hairline-faint: 1px solid var(--rule);
 
+  /* --- Lift: the one permitted shadow -------------------------------------
+     Shadows are banned on static containers, section blocks, ledger rows and
+     the impact strip. This token exists ONLY for cards that lift or animate on
+     hover/focus — practice-area tiles, core-values tiles, project cards — and
+     only while they are being interacted with, never at rest. Keeping the
+     allowance in a single token keeps the permitted set greppable.
+     See design-notes.md, "Amended: shadows on interactive cards". */
+  --lift-shadow: 0 6px 18px rgb(12 58 32 / 16%);
+  --lift-rise: -3px; /* translateY while lifted */
+
   /* --- Motion — one orchestrated moment per page (§4.6) -------------------- */
   --ease: cubic-bezier(0.2, 0, 0.1, 1);
   --dur-fast: 120ms;
+  --dur-lift: 160ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
     --dur-fast: 0ms;
+    /* The lift becomes a state change with no travel: the shadow and the
+       ground still change, so the tile still reads as picked up. */
+    --lift-rise: 0px;
+    --dur-lift: 0ms;
   }
 }

@@ -81,7 +81,14 @@ const { items, label, numbered = true } = Astro.props;
     background: var(--paper-raised);
     border: var(--hairline);
     color: var(--text);
-    transition: background var(--dur-fast) var(--ease);
+    /* No shadow at rest — see design-notes.md, "Amended: shadows on
+       interactive cards". The lift below is the only one on the site. */
+    transform: translateY(0);
+    box-shadow: none;
+    transition:
+      background var(--dur-fast) var(--ease),
+      transform var(--dur-lift) var(--ease),
+      box-shadow var(--dur-lift) var(--ease);
   }
 
   .tile__inner {
@@ -91,9 +98,15 @@ const { items, label, numbered = true } = Astro.props;
     align-items: stretch;
   }
 
+  /* Hover, keyboard focus and pinned-open are one visual state, so a keyboard
+     user gets the lift and not merely the focus ring. --lift-rise flattens to
+     0 under reduced motion, leaving the shadow and ground change to carry it. */
   .tile:hover,
-  .tile:focus-visible {
+  .tile:focus-visible,
+  .tile[aria-expanded='true'] {
     background: var(--paper-sunk);
+    transform: translateY(var(--lift-rise));
+    box-shadow: var(--lift-shadow);
   }
 
   .tile:focus-visible {
@@ -152,7 +165,10 @@ const { items, label, numbered = true } = Astro.props;
     padding-top: var(--space-3xs);
   }
 
-  /* The bounce: added by script on activation, removed when it finishes. */
+  /* The bounce: added by script on activation, removed when it finishes.
+     Each frame carries the lift as well as the scale — an animation overrides
+     the transition on `transform` for its whole run, so a scale-only keyframe
+     would drop the tile back down for the length of the bounce. */
   @media (prefers-reduced-motion: no-preference) {
     .tile[data-bounce] {
       animation: tile-bounce 260ms var(--ease);
@@ -160,13 +176,13 @@ const { items, label, numbered = true } = Astro.props;
 
     @keyframes tile-bounce {
       0% {
-        transform: scale(1);
+        transform: translateY(var(--lift-rise)) scale(1);
       }
       45% {
-        transform: scale(1.035);
+        transform: translateY(var(--lift-rise)) scale(1.035);
       }
       100% {
-        transform: scale(1);
+        transform: translateY(var(--lift-rise)) scale(1);
       }
     }
   }

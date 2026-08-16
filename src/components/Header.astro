@@ -98,7 +98,9 @@ const here = routePath(Astro.url.pathname);
 
 <style>
   .site-header {
-    background: var(--green-900);
+    /* A step darker than the hero and the page headers below it, so the band
+       reads as a layer above the page rather than sharing their ground. */
+    background: var(--green-950);
     position: sticky;
     top: 0;
     z-index: 50;
